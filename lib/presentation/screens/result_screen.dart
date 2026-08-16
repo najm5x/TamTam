@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import '../../domain/models/game_state.dart';
+import 'match_screen.dart';
 
 class ResultScreen extends StatefulWidget {
   final String winnerName;
   final Color winnerColor;
+  final GameState finishedState;
 
   const ResultScreen({
     super.key,
     required this.winnerName,
     required this.winnerColor,
+    required this.finishedState,
   });
 
   @override
@@ -40,6 +44,25 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   void dispose() {
     _animController.dispose();
     super.dispose();
+  }
+
+  void _rematch() {
+    final original = widget.finishedState;
+    final profile = original.ruleProfile;
+    final freshPlayers = original.players
+        .map((p) => p.copyWith(progress: profile.startProgress, isWinner: false))
+        .toList();
+    final freshState = GameState(
+      players: freshPlayers,
+      activePlayerIndex: 0,
+      ruleProfile: profile,
+      phase: TurnPhase.waitingForCast,
+      winnerId: null,
+      extraCastsRemaining: 0,
+    );
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => MatchScreen(initialState: freshState)),
+    );
   }
 
   @override
@@ -108,9 +131,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             ElevatedButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
+                              onPressed: _rematch,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFFF4A261),
                                 padding: const EdgeInsets.symmetric(vertical: 16),

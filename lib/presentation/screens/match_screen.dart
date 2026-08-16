@@ -18,7 +18,8 @@ import 'package:flutter/foundation.dart';
 
 class MatchScreen extends StatefulWidget {
   final GameState? initialState;
-  const MatchScreen({super.key, this.initialState});
+  final CastGenerator? castGenerator;
+  const MatchScreen({super.key, this.initialState, this.castGenerator});
 
   @override
   State<MatchScreen> createState() => _MatchScreenState();
@@ -26,7 +27,7 @@ class MatchScreen extends StatefulWidget {
 
 class _MatchScreenState extends State<MatchScreen> with TickerProviderStateMixin {
   late GameState _gameState;
-  final CastGenerator _castGenerator = FairBinaryCastGenerator();
+  late final CastGenerator _castGenerator;
   CastResult? _lastCastResult;
   bool _devModeVisible = false;
 
@@ -45,6 +46,7 @@ class _MatchScreenState extends State<MatchScreen> with TickerProviderStateMixin
   @override
   void initState() {
     super.initState();
+    _castGenerator = widget.castGenerator ?? FairBinaryCastGenerator();
     _gameState = widget.initialState ?? GameState(
       players: [
         PlayerState(id: 'p1', name: 'Player 1', seat: Seat.bottom, kind: PlayerKind.human, progress: 0),
@@ -188,28 +190,36 @@ class _MatchScreenState extends State<MatchScreen> with TickerProviderStateMixin
   void _afterMovement({required bool hasExtraCast}) {
     if (!mounted) return;
 
+    // A winning cast already lands in matchFinished (see TamTamEngine._handleCast);
+    // it must be handled here directly since NextTurn() is a no-op once the match is over.
+    if (_gameState.phase == TurnPhase.matchFinished) {
+      _navigateToResult();
+      return;
+    }
+
     if (_gameState.phase == TurnPhase.turnFinished || _gameState.phase == TurnPhase.animatingMove) {
       final nextTrans = TamTamEngine.apply(_gameState, NextTurn());
       setState(() => _gameState = nextTrans.state);
-
-      if (_gameState.phase == TurnPhase.matchFinished) {
-        final winner = _gameState.players.firstWhere((p) => p.isWinner, orElse: () => _gameState.activePlayer);
-        final winnerColor = _seatColor(winner.seat);
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (!mounted) return;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => ResultScreen(
-                winnerName: winner.name,
-                winnerColor: winnerColor,
-              ),
-            ),
-          );
-        });
-      } else {
-        _checkBotTurn();
-      }
+      _checkBotTurn();
     }
+  }
+
+  void _navigateToResult() {
+    final finishedState = _gameState;
+    final winner = finishedState.players.firstWhere((p) => p.isWinner, orElse: () => finishedState.activePlayer);
+    final winnerColor = _seatColor(winner.seat);
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => ResultScreen(
+            winnerName: winner.name,
+            winnerColor: winnerColor,
+            finishedState: finishedState,
+          ),
+        ),
+      );
+    });
   }
 
   Color _seatColor(Seat seat) {

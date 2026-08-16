@@ -70,5 +70,5 @@ void main() {
 
   final outFile = File('lib/domain/routes/canonical_routes.dart');
   outFile.writeAsStringSync(out.toString());
-  print('Successfully generated \${outFile.path}');
+  print('Successfully generated ${outFile.path}');
 }
