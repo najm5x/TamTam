@@ -122,5 +122,17 @@ void main() {
       checkList(CanonicalRoutes.leftSecondRound, players['left']['second_round']);
       checkList(CanonicalRoutes.leftClassicUnified, players['left']['classic_unified']);
     });
+
+    test('Route-to-render mapping (handoff section R)', () {
+      expect(CanonicalRoutes.topClassicUnified[0], 'E1');
+      expect(CanonicalRoutes.topClassicUnified[18], 'G9');
+      expect(CanonicalRoutes.bottomClassicUnified[26], 'A7');
+
+      // Top 60->62: anti-clockwise outer route reaches the gate (61) then
+      // turns into the clockwise inward route toward E5.
+      expect(CanonicalRoutes.topClassicUnified[60], 'I1');
+      expect(CanonicalRoutes.topClassicUnified[61], 'H1');
+      expect(CanonicalRoutes.topClassicUnified[62], 'H2');
+    });
   });
 }

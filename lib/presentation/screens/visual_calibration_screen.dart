@@ -181,6 +181,59 @@ class _PhoneFrame extends StatelessWidget {
   }
 }
 
+/// Pure layout math for the calibration canvas, factored out so it can be
+/// unit-tested without pumping a widget tree. `canvasWidth` must never
+/// exceed `availableWidth` -- CustomPaint's RenderBox gets clamped to the
+/// incoming constraints regardless, but the painter's internal coordinates
+/// are computed from these fields directly, so if canvasWidth overshoots,
+/// content silently draws past the clamped box instead of throwing.
+@visibleForTesting
+class CalibrationLayoutMetrics {
+  final double displayedBoardSize;
+  final double marginX;
+  final double marginY;
+  final double canvasWidth;
+  final double canvasHeight;
+
+  const CalibrationLayoutMetrics({
+    required this.displayedBoardSize,
+    required this.marginX,
+    required this.marginY,
+    required this.canvasWidth,
+    required this.canvasHeight,
+  });
+
+  static CalibrationLayoutMetrics compute(double availableWidth, MatchLayoutProfile profile) {
+    final frameHalfRatio = PlayerFrameContract.sizeRatio / 2;
+    final horizontalMarginRatio =
+        PlayerFrameContract.anchorRatios[FrameAnchor.right]!.dx + frameHalfRatio - 1.0;
+    final verticalMarginRatio =
+        PlayerFrameContract.anchorRatios[FrameAnchor.bottom]!.dy + frameHalfRatio - 1.0;
+
+    // Only reserve horizontal margin when side frames are actually shown for
+    // this profile (2P hides them); top/bottom frames show in every profile
+    // this contract defines, so vertical margin always applies.
+    final sidesVisible = profile.visibleSeats.left || profile.visibleSeats.right;
+    final horizontalExtent = sidesVisible ? 1 + 2 * horizontalMarginRatio : 1.0;
+
+    final displayedBoardSize = availableWidth / horizontalExtent;
+    final marginX = sidesVisible ? horizontalMarginRatio * displayedBoardSize : 0.0;
+    final marginY = verticalMarginRatio * displayedBoardSize;
+
+    const trayGap = 24.0;
+    const trayPadding = 12.0;
+    final trayHeight = CastTrayContract.displayHeight(displayedBoardSize);
+
+    return CalibrationLayoutMetrics(
+      displayedBoardSize: displayedBoardSize,
+      marginX: marginX,
+      marginY: marginY,
+      canvasWidth: displayedBoardSize + 2 * marginX,
+      canvasHeight: displayedBoardSize + 2 * marginY + trayGap + trayHeight + trayPadding,
+    );
+  }
+}
+
 class _CalibrationBoard extends StatelessWidget {
   final MatchLayoutProfile profile;
 
@@ -190,25 +243,14 @@ class _CalibrationBoard extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       final availableWidth = constraints.maxWidth.isFinite ? constraints.maxWidth : 360.0;
-      final displayedBoardSize = profile.boardSizeFor(availableWidth);
-
-      final frameHalfRatio = PlayerFrameContract.sizeRatio / 2;
-      final marginRatio =
-          PlayerFrameContract.anchorRatios[FrameAnchor.right]!.dx + frameHalfRatio - 1.0;
-      final margin = marginRatio * displayedBoardSize;
-
-      const trayGap = 24.0;
-      final trayHeight = CastTrayContract.displayHeight(displayedBoardSize);
-      final trayPadding = 12.0;
-
-      final canvasWidth = displayedBoardSize + 2 * margin;
-      final canvasHeight = displayedBoardSize + 2 * margin + trayGap + trayHeight + trayPadding;
+      final metrics = CalibrationLayoutMetrics.compute(availableWidth, profile);
 
       return CustomPaint(
-        size: Size(canvasWidth, canvasHeight),
+        size: Size(metrics.canvasWidth, metrics.canvasHeight),
         painter: _CalibrationPainter(
-          displayedBoardSize: displayedBoardSize,
-          margin: margin,
+          displayedBoardSize: metrics.displayedBoardSize,
+          marginX: metrics.marginX,
+          marginY: metrics.marginY,
           profile: profile,
         ),
       );
@@ -218,17 +260,19 @@ class _CalibrationBoard extends StatelessWidget {
 
 class _CalibrationPainter extends CustomPainter {
   final double displayedBoardSize;
-  final double margin;
+  final double marginX;
+  final double marginY;
   final MatchLayoutProfile profile;
 
   _CalibrationPainter({
     required this.displayedBoardSize,
-    required this.margin,
+    required this.marginX,
+    required this.marginY,
     required this.profile,
   });
 
-  double _sx(double designX) => margin + BoardGeometry.scale(designX, displayedBoardSize);
-  double _sy(double designY) => margin + BoardGeometry.scale(designY, displayedBoardSize);
+  double _sx(double designX) => marginX + BoardGeometry.scale(designX, displayedBoardSize);
+  double _sy(double designY) => marginY + BoardGeometry.scale(designY, displayedBoardSize);
   Offset _designPoint(Offset design) => Offset(_sx(design.dx), _sy(design.dy));
 
   @override
@@ -249,7 +293,7 @@ class _CalibrationPainter extends CustomPainter {
   }
 
   void _paintBoardCanvas(Canvas canvas) {
-    final rect = Rect.fromLTWH(margin, margin, displayedBoardSize, displayedBoardSize);
+    final rect = Rect.fromLTWH(marginX, marginY, displayedBoardSize, displayedBoardSize);
     canvas.drawRect(rect, Paint()..color = const Color(0xFFFFF8E7));
     canvas.drawRect(
       rect,
@@ -347,7 +391,7 @@ class _CalibrationPainter extends CustomPainter {
   }
 
   void _paintPlayerFrames(Canvas canvas) {
-    final boardTopLeft = Offset(margin, margin);
+    final boardTopLeft = Offset(marginX, marginY);
     void frame(FrameAnchor anchor, bool visible, Seat seat, String label) {
       if (!visible) return;
       final center = boardTopLeft + PlayerFrameContract.centerFor(anchor, displayedBoardSize);
@@ -440,7 +484,8 @@ class _CalibrationPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _CalibrationPainter oldDelegate) {
     return oldDelegate.displayedBoardSize != displayedBoardSize ||
-        oldDelegate.margin != margin ||
+        oldDelegate.marginX != marginX ||
+        oldDelegate.marginY != marginY ||
         oldDelegate.profile != profile;
   }
 }
