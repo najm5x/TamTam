@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'match_setup_screen.dart';
 import 'settings_screen.dart';
+import 'visual_calibration_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -99,14 +101,29 @@ class HomeScreen extends StatelessWidget {
               letterSpacing: 4.0,
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.settings, color: AppTheme.primaryDark),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
-            },
+          Row(
+            children: [
+              if (!kReleaseMode)
+                IconButton(
+                  icon: const Icon(Icons.straighten, color: AppTheme.primaryDark),
+                  tooltip: 'Visual calibration (debug)',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const VisualCalibrationScreen()),
+                    );
+                  },
+                ),
+              IconButton(
+                icon: const Icon(Icons.settings, color: AppTheme.primaryDark),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                  );
+                },
+              ),
+            ],
           ),
         ],
       ),
