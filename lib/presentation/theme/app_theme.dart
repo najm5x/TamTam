@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../domain/models/seat.dart';
 
 class AppTheme {
   // Player colors
@@ -45,6 +46,15 @@ class AppTheme {
       case 'bottom': return bottomPlayerColor;
       case 'left': return leftPlayerColor;
       default: return Colors.grey;
+    }
+  }
+
+  static Color seatColor(Seat seat) {
+    switch (seat) {
+      case Seat.top: return topPlayerColor;
+      case Seat.right: return rightPlayerColor;
+      case Seat.bottom: return bottomPlayerColor;
+      case Seat.left: return leftPlayerColor;
     }
   }
   
