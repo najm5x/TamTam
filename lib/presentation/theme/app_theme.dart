@@ -88,7 +88,10 @@ class AppTheme {
         surface: surfaceBg,
         brightness: Brightness.light,
       ),
-      scaffoldBackgroundColor: surfaceBg,
+      // Navy, not white: this is the fallback layer visible at any edge/gap
+      // during a route transition (before/behind TamTamBackground's image),
+      // so it must never read as a white flash.
+      scaffoldBackgroundColor: primaryDark,
       fontFamily: defaultFont,
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,

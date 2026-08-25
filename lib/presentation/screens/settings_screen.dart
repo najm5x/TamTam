@@ -6,6 +6,7 @@ import 'package:tamtam/presentation/skins/profile_frame_skin.dart';
 import 'package:tamtam/presentation/skins/skin_selection.dart';
 import 'package:tamtam/presentation/theme/app_theme.dart';
 import 'package:tamtam/presentation/widgets/tamtam_background.dart';
+import 'package:tamtam/presentation/widgets/pop_in.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -55,73 +56,88 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               _buildSectionTitle('AUDIO & HAPTICS'),
               const SizedBox(height: 10.0),
-              _buildSettingsCard(
-                children: [
-                  _buildSwitchTile(
-                    icon: Icons.volume_up_rounded,
-                    iconColor: const Color(0xFF3B82F6),
-                    title: 'Sound Effects',
-                    value: _soundEnabled,
-                    onChanged: (val) => setState(() => _soundEnabled = val),
-                  ),
-                  const Divider(height: 1.0, indent: 56.0, endIndent: 16.0),
-                  _buildSwitchTile(
-                    icon: Icons.vibration_rounded,
-                    iconColor: const Color(0xFF8B5CF6),
-                    title: 'Haptic Feedback',
-                    value: _hapticsEnabled,
-                    onChanged: (val) => setState(() => _hapticsEnabled = val),
-                  ),
-                ],
+              PopIn(
+                order: 0,
+                child: _buildSettingsCard(
+                  children: [
+                    _buildSwitchTile(
+                      icon: Icons.volume_up_rounded,
+                      iconColor: const Color(0xFF3B82F6),
+                      title: 'Sound Effects',
+                      value: _soundEnabled,
+                      onChanged: (val) => setState(() => _soundEnabled = val),
+                    ),
+                    const Divider(height: 1.0, indent: 56.0, endIndent: 16.0),
+                    _buildSwitchTile(
+                      icon: Icons.vibration_rounded,
+                      iconColor: const Color(0xFF8B5CF6),
+                      title: 'Haptic Feedback',
+                      value: _hapticsEnabled,
+                      onChanged: (val) => setState(() => _hapticsEnabled = val),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 20.0),
-              _buildSkinDropdown<BoardSkin>(
-                skinKey: 'board',
-                icon: Icons.grid_view_rounded,
-                iconColor: const Color(0xFF06B6D4),
-                label: 'Board',
-                notifier: SkinSelection.board,
-                options: BoardSkin.all,
-                displayNameOf: (skin) => skin.displayName,
-                previewBuilder: (skin, context) => ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: SizedBox(width: 32.0, height: 32.0, child: skin.backgroundBuilder(context)),
+              PopIn(
+                order: 1,
+                child: _buildSkinDropdown<BoardSkin>(
+                  skinKey: 'board',
+                  icon: Icons.grid_view_rounded,
+                  iconColor: const Color(0xFF06B6D4),
+                  label: 'Board',
+                  notifier: SkinSelection.board,
+                  options: BoardSkin.all,
+                  displayNameOf: (skin) => skin.displayName,
+                  previewBuilder: (skin, context) => ClipRRect(
+                    borderRadius: BorderRadius.circular(8.0),
+                    child: SizedBox(width: 32.0, height: 32.0, child: skin.backgroundBuilder(context)),
+                  ),
                 ),
               ),
               const SizedBox(height: 12.0),
-              _buildSkinDropdown<ProfileFrameSkin>(
-                skinKey: 'frame',
-                icon: Icons.face_retouching_natural_rounded,
-                iconColor: const Color(0xFF8B5CF6),
-                label: 'Frame',
-                notifier: SkinSelection.frame,
-                options: ProfileFrameSkin.all,
-                displayNameOf: (skin) => skin.displayName,
-                previewBuilder: (skin, context) =>
-                    SizedBox(width: 32.0, height: 32.0, child: skin.builder(context)),
+              PopIn(
+                order: 2,
+                child: _buildSkinDropdown<ProfileFrameSkin>(
+                  skinKey: 'frame',
+                  icon: Icons.face_retouching_natural_rounded,
+                  iconColor: const Color(0xFF8B5CF6),
+                  label: 'Frame',
+                  notifier: SkinSelection.frame,
+                  options: ProfileFrameSkin.all,
+                  displayNameOf: (skin) => skin.displayName,
+                  previewBuilder: (skin, context) =>
+                      SizedBox(width: 32.0, height: 32.0, child: skin.builder(context)),
+                ),
               ),
               const SizedBox(height: 12.0),
-              _buildSkinDropdown<PieceSkin>(
-                skinKey: 'piece',
-                icon: Icons.circle_rounded,
-                iconColor: const Color(0xFFF97316),
-                label: 'Piece',
-                notifier: SkinSelection.piece,
-                options: PieceSkin.all,
-                displayNameOf: (skin) => skin.displayName,
-                previewBuilder: (skin, context) =>
-                    SizedBox(width: 32.0, height: 32.0, child: skin.builder(context, Seat.bottom)),
+              PopIn(
+                order: 3,
+                child: _buildSkinDropdown<PieceSkin>(
+                  skinKey: 'piece',
+                  icon: Icons.circle_rounded,
+                  iconColor: const Color(0xFFF97316),
+                  label: 'Piece',
+                  notifier: SkinSelection.piece,
+                  options: PieceSkin.all,
+                  displayNameOf: (skin) => skin.displayName,
+                  previewBuilder: (skin, context) =>
+                      SizedBox(width: 32.0, height: 32.0, child: skin.builder(context, Seat.bottom)),
+                ),
               ),
               const SizedBox(height: 20.0),
-              _buildSettingsCard(
-                children: [
-                  _buildActionTile(
-                    icon: Icons.help_outline_rounded,
-                    iconColor: const Color(0xFF10B981),
-                    title: 'Help',
-                    onTap: () => _showHowToPlayModal(context),
-                  ),
-                ],
+              PopIn(
+                order: 4,
+                child: _buildSettingsCard(
+                  children: [
+                    _buildActionTile(
+                      icon: Icons.help_outline_rounded,
+                      iconColor: const Color(0xFF10B981),
+                      title: 'Help',
+                      onTap: () => _showHowToPlayModal(context),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

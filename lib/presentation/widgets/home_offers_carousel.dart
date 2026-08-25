@@ -58,8 +58,10 @@ class _HomeOffersCarouselState extends State<HomeOffersCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18.0),
+      child: Column(
+        children: [
         AspectRatio(
           aspectRatio: HomeOffersCarousel._viewportAspectRatio,
           child: PageView.builder(
@@ -91,7 +93,8 @@ class _HomeOffersCarouselState extends State<HomeOffersCarousel> {
             );
           }),
         ),
-      ],
+        ],
+      ),
     );
   }
 }

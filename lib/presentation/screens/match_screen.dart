@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:tamtam/domain/models/game_state.dart';
 import 'package:tamtam/domain/engine/cast_generator.dart';
@@ -18,6 +20,8 @@ import 'package:tamtam/presentation/widgets/cast_tray.dart';
 import 'package:tamtam/presentation/widgets/tamtam_background.dart';
 import 'package:tamtam/presentation/layout/visual_layout_contract.dart';
 import 'package:tamtam/presentation/screens/settings_screen.dart';
+import 'package:tamtam/presentation/widgets/pressable_scale.dart';
+import 'package:tamtam/presentation/navigation/tamtam_page_route.dart';
 
 class MatchScreen extends StatefulWidget {
   const MatchScreen({this.initialState, this.castGenerator, super.key});
@@ -50,9 +54,17 @@ class _MatchScreenState extends State<MatchScreen>
 
   bool _isCubeAnimating = false;
 
-  bool _showCaptureEffect = false;
-
   bool _showExtraCast = false;
+
+  // Set the instant a legal cast tap is accepted and cleared only once the
+  // entire action lifecycle (cubes -> engine move -> piece animation ->
+  // capture/extra-cast settle -> next-turn state) has fully resolved. This
+  // is the single source of truth the tap handler consults -- guarding on
+  // it (rather than only on _isAnimating/_isCubeAnimating, which both sit
+  // false during the brief gaps between those phases) is what prevents a
+  // rapid second tap from re-entering _performCast on stale state and
+  // starting an overlapping movement sequence.
+  bool _castInteractionLocked = false;
 
   @override
   void initState() {
@@ -124,32 +136,41 @@ class _MatchScreenState extends State<MatchScreen>
   }
 
   void _performCast([CastResult? forcedCast]) {
-    if (_gameState.phase != TurnPhase.waitingForCast ||
-        _isAnimating ||
-        _isCubeAnimating) {
+    // Primary guard: the handler itself must refuse re-entry, not just the
+    // tray's visual disabled state. Once true, this stays true across every
+    // await/Future.delayed gap below until the whole action lifecycle
+    // (cubes, engine move, piece animation, capture/extra-cast, next-turn)
+    // has resolved, so a rapid second tap during any of those gaps is a
+    // no-op instead of starting a second, overlapping action.
+    if (_castInteractionLocked) {
       return;
     }
-    final castResult = forcedCast ?? _castGenerator.generate();
-    final activePlayer = _gameState.activePlayer;
-    final transition = TamTamEngine.apply(_gameState, RequestCast(castResult));
-    List<String>? movementPath;
-    PieceCaptured? captureEvent;
-    bool hasExtraCast = false;
-    for (final event in transition.events) {
-      if (event is PieceMovementPlanned) {
-        movementPath = event.path;
-      }
-      if (event is PieceCaptured) {
-        captureEvent = event;
-      }
-      if (event is ExtraCastGranted) {
-        hasExtraCast = true;
-      }
+    if (_gameState.phase != TurnPhase.waitingForCast) {
+      return;
     }
-    setState(() {
-      _isCubeAnimating = true;
-    });
-    Future.delayed(const Duration(milliseconds: 650), () {
+    _castInteractionLocked = true;
+    unawaited(_runCastSequence(forcedCast));
+  }
+
+  Future<void> _runCastSequence(CastResult? forcedCast) async {
+    try {
+      final castResult = forcedCast ?? _castGenerator.generate();
+      final activePlayer = _gameState.activePlayer;
+      final transition = TamTamEngine.apply(_gameState, RequestCast(castResult));
+      List<String>? movementPath;
+      bool hasExtraCast = false;
+      for (final event in transition.events) {
+        if (event is PieceMovementPlanned) {
+          movementPath = event.path;
+        }
+        if (event is ExtraCastGranted) {
+          hasExtraCast = true;
+        }
+      }
+      setState(() {
+        _isCubeAnimating = true;
+      });
+      await Future.delayed(const Duration(milliseconds: 650));
       if (!mounted) {
         return;
       }
@@ -157,27 +178,36 @@ class _MatchScreenState extends State<MatchScreen>
         _isCubeAnimating = false;
         _lastCastResult = castResult;
       });
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (!mounted) {
-          return;
-        }
-        if (movementPath != null && movementPath!.isNotEmpty) {
-          _animateMovement(
-            seat: activePlayer.seat,
-            path: movementPath!,
-            castValue: castResult.value,
-            finalState: transition.state,
-            captureEvent: captureEvent,
-            hasExtraCast: hasExtraCast,
-          );
-        } else {
-          setState(() {
-            _gameState = transition.state;
-          });
-          _afterMovement(hasExtraCast: false);
-        }
-      });
-    });
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (!mounted) {
+        return;
+      }
+      if (movementPath != null && movementPath.isNotEmpty) {
+        await _animateMovement(
+          seat: activePlayer.seat,
+          path: movementPath,
+          castValue: castResult.value,
+          finalState: transition.state,
+          hasExtraCast: hasExtraCast,
+        );
+      } else {
+        setState(() {
+          _gameState = transition.state;
+        });
+        _afterMovement(hasExtraCast: false);
+      }
+    } finally {
+      // Released only here, after the entire lifecycle above has completed
+      // (or on any early return/exception), so the UI can never get stuck
+      // permanently locked.
+      if (mounted) {
+        setState(() {
+          _castInteractionLocked = false;
+        });
+      } else {
+        _castInteractionLocked = false;
+      }
+    }
   }
 
   Future<void> _animateMovement({
@@ -185,7 +215,6 @@ class _MatchScreenState extends State<MatchScreen>
     required List<String> path,
     required int castValue,
     required GameState finalState,
-    PieceCaptured? captureEvent,
     required bool hasExtraCast,
   }) async {
     setState(() {
@@ -209,14 +238,6 @@ class _MatchScreenState extends State<MatchScreen>
       _isAnimating = false;
       _gameState = finalState;
     });
-    if (captureEvent != null) {
-      setState(() => _showCaptureEffect = true);
-      await Future.delayed(const Duration(milliseconds: 800));
-      if (!mounted) {
-        return;
-      }
-      setState(() => _showCaptureEffect = false);
-    }
     if (hasExtraCast) {
       setState(() => _showExtraCast = true);
       await Future.delayed(const Duration(milliseconds: 600));
@@ -256,8 +277,8 @@ class _MatchScreenState extends State<MatchScreen>
         return;
       }
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => ResultScreen(
+        tamTamRoute(
+          (_) => ResultScreen(
             winnerName: winner.name,
             winnerColor: winnerColor,
             finishedState: finishedState,
@@ -307,6 +328,7 @@ class _MatchScreenState extends State<MatchScreen>
         }
       },
       child: Scaffold(
+        backgroundColor: Colors.transparent,
         body: TamTamBackground(
           child: SafeArea(child: _buildMatchLayout()),
         ),
@@ -348,19 +370,15 @@ class _MatchScreenState extends State<MatchScreen>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              GestureDetector(
+              PressableScale(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                  );
+                  Navigator.push(context, tamTamRoute((context) => const SettingsScreen()));
                 },
                 onLongPress: () {
                   if (!kReleaseMode) {
                     setState(() => _devModeVisible = !_devModeVisible);
                   }
                 },
-                behavior: HitTestBehavior.opaque,
                 child: Padding(
                   padding: const EdgeInsets.all(6.0),
                   child: Image.asset(
@@ -423,34 +441,6 @@ class _MatchScreenState extends State<MatchScreen>
               isBot: rightPlayer.kind == PlayerKind.bot,
             ),
         ]),
-        if (_showCaptureEffect)
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0.0, end: 1.0),
-            duration: const Duration(milliseconds: 400),
-            builder: (context, value, child) => Opacity(
-              opacity: value > 0.5 ? 2.0 - value * 2 : value * 2,
-              child: child,
-            ),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24.0,
-                vertical: 8.0,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.red.shade600,
-                borderRadius: BorderRadius.circular(20.0),
-              ),
-              child: const Text(
-                'CAPTURE!',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 14.0,
-                  letterSpacing: 2.0,
-                ),
-              ),
-            ),
-          ),
         if (_showExtraCast)
           TweenAnimationBuilder<double>(
             tween: Tween(begin: 0.0, end: 1.0),
@@ -497,6 +487,7 @@ class _MatchScreenState extends State<MatchScreen>
                     onCastPressed: () => _performCast(),
                     canCast:
                         _gameState.phase == TurnPhase.waitingForCast &&
+                        !_castInteractionLocked &&
                         !_isAnimating &&
                         !_isCubeAnimating &&
                         _gameState.activePlayer.kind == PlayerKind.human,

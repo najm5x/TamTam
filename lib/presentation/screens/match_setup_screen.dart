@@ -4,7 +4,10 @@ import 'package:tamtam/domain/models/player_state.dart';
 import 'package:tamtam/domain/models/seat.dart';
 import 'package:tamtam/domain/models/game_state.dart';
 import 'package:tamtam/presentation/screens/match_screen.dart';
+import 'package:tamtam/presentation/widgets/pressable_scale.dart';
+import 'package:tamtam/presentation/widgets/pop_in.dart';
 import 'package:tamtam/presentation/widgets/tamtam_background.dart';
+import 'package:tamtam/presentation/navigation/tamtam_page_route.dart';
 
 /// Match Setup's only remaining job is Classic vs Blitz + Start. Format
 /// (2P/4P/Bot) is already decided on Home and arrives via [gameType].
@@ -165,9 +168,7 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
     );
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (context) => MatchScreen(initialState: gameState),
-      ),
+      tamTamRoute((context) => MatchScreen(initialState: gameState)),
     );
   }
 
@@ -188,6 +189,7 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: TamTamBackground(
         child: SafeArea(
           child: Stack(
@@ -202,32 +204,35 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
                         const SizedBox(height: 56.0),
                         Expanded(
                           child: Center(
-                            child: sideBySide
-                                ? Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Expanded(child: _buildRuleCard(RuleProfile.classic(), 'assets/setup/classic.png')),
-                                      const SizedBox(width: 18.0),
-                                      Expanded(child: _buildRuleCard(RuleProfile.blitz(), 'assets/setup/blitz.png')),
-                                    ],
-                                  )
-                                : Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      SizedBox(
-                                        width: 240.0,
-                                        child: _buildRuleCard(RuleProfile.classic(), 'assets/setup/classic.png'),
-                                      ),
-                                      const SizedBox(height: 18.0),
-                                      SizedBox(
-                                        width: 240.0,
-                                        child: _buildRuleCard(RuleProfile.blitz(), 'assets/setup/blitz.png'),
-                                      ),
-                                    ],
-                                  ),
+                            child: PopIn(
+                              order: 0,
+                              child: sideBySide
+                                  ? Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Expanded(child: _buildRuleCard(RuleProfile.classic(), 'assets/setup/classic.png')),
+                                        const SizedBox(width: 18.0),
+                                        Expanded(child: _buildRuleCard(RuleProfile.blitz(), 'assets/setup/blitz.png')),
+                                      ],
+                                    )
+                                  : Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SizedBox(
+                                          width: 240.0,
+                                          child: _buildRuleCard(RuleProfile.classic(), 'assets/setup/classic.png'),
+                                        ),
+                                        const SizedBox(height: 18.0),
+                                        SizedBox(
+                                          width: 240.0,
+                                          child: _buildRuleCard(RuleProfile.blitz(), 'assets/setup/blitz.png'),
+                                        ),
+                                      ],
+                                    ),
+                            ),
                           ),
                         ),
-                        _buildStartButton(),
+                        PopIn(order: 1, child: _buildStartButton()),
                         const SizedBox(height: 16.0),
                       ],
                     ),
@@ -248,7 +253,7 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
 
   Widget _buildRuleCard(RuleProfile profile, String asset) {
     final isSelected = _selectedProfile?.mode == profile.mode;
-    return GestureDetector(
+    return PressableScale(
       onTap: () => setState(() => _selectedProfile = profile),
       child: AspectRatio(
         aspectRatio: 1,
@@ -282,19 +287,21 @@ class _MatchSetupScreenState extends State<MatchSetupScreen> {
   }
 
   Widget _buildStartButton() {
-    return GestureDetector(
-      onTap: _isReadyToPlay() ? _playGame : null,
-      child: Opacity(
-        opacity: _isReadyToPlay() ? 1.0 : 0.5,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 340.0),
-          child: AspectRatio(
-            aspectRatio: 1969 / 799,
-            child: Image.asset('assets/setup/start.png', fit: BoxFit.contain),
-          ),
+    final ready = _isReadyToPlay();
+    final button = Opacity(
+      opacity: ready ? 1.0 : 0.5,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 340.0),
+        child: AspectRatio(
+          aspectRatio: 1969 / 799,
+          child: Image.asset('assets/setup/start.png', fit: BoxFit.contain),
         ),
       ),
     );
+    if (!ready) {
+      return button;
+    }
+    return PressableScale(onTap: _playGame, child: button);
   }
 }
 
@@ -305,9 +312,8 @@ class _CloseButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return PressableScale(
       onTap: onTap,
-      behavior: HitTestBehavior.opaque,
       child: const Padding(
         padding: EdgeInsets.all(10.0),
         child: Image(

@@ -26,7 +26,9 @@ class PlayerHud extends StatelessWidget {
       height: 54.0,
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
       decoration: BoxDecoration(
-        color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.7),
+        // No fill: the blue global app background shows through the chip's
+        // interior, leaving only the stroke/accent as the readable frame.
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(24.0),
         // Width stays fixed across active/inactive (only color changes) --
         // see cast_tray.dart's border comment: a BoxDecoration border width
@@ -34,21 +36,15 @@ class PlayerHud extends StatelessWidget {
         // isActive would nudge this chip's own footprint by a px on every
         // turn change.
         border: Border.all(
-          color: isActive ? color : const Color(0x14000000),
+          color: isActive ? color : Colors.white.withValues(alpha: 0.45),
           width: 2.0,
         ),
         boxShadow: [
           if (isActive)
             BoxShadow(
-              color: color.withValues(alpha: 0.25),
+              color: color.withValues(alpha: 0.45),
               blurRadius: 10.0,
               offset: const Offset(0.0, 3.0),
-            )
-          else
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 4.0,
-              offset: const Offset(0.0, 2.0),
             ),
         ],
       ),
@@ -62,8 +58,11 @@ class PlayerHud extends StatelessWidget {
             style: TextStyle(
               fontSize: 13.0,
               fontFamily: 'Plus Jakarta Sans',
-              color: isActive ? AppTheme.primaryDark : AppTheme.textSecondary,
+              color: AppTheme.textLight,
               fontWeight: isActive ? FontWeight.w900 : FontWeight.w600,
+              shadows: const [
+                Shadow(color: Color(0x991B0F2E), blurRadius: 4.0, offset: Offset(0.0, 1.0)),
+              ],
             ),
             child: Text(name),
           ),

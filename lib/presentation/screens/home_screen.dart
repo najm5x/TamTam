@@ -3,9 +3,12 @@ import 'package:tamtam/presentation/theme/app_theme.dart';
 import 'package:tamtam/presentation/screens/settings_screen.dart';
 import 'package:tamtam/presentation/screens/match_setup_screen.dart';
 import 'package:tamtam/presentation/widgets/player_portrait.dart';
+import 'package:tamtam/presentation/widgets/pressable_scale.dart';
+import 'package:tamtam/presentation/widgets/pop_in.dart';
 import 'package:tamtam/presentation/widgets/tamtam_background.dart';
 import 'package:tamtam/presentation/widgets/home_sparkle_layer.dart';
 import 'package:tamtam/presentation/widgets/home_offers_carousel.dart';
+import 'package:tamtam/presentation/navigation/tamtam_page_route.dart';
 
 /// Home is fully art-driven: home_background.png fills the screen and the
 /// mode cards are the supplied PNGs (frame/background already baked in) with
@@ -17,6 +20,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.primaryDark,
       body: TamTamBackground(
         child: Stack(
           children: [
@@ -43,13 +47,22 @@ class HomeScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Column(
                       children: [
-                        Padding(padding: insetPadding, child: _buildHeader(context, scale)),
+                        PopIn(
+                          order: 0,
+                          child: Padding(padding: insetPadding, child: _buildHeader(context, scale)),
+                        ),
                         SizedBox(height: 18.0 * scale),
-                        _buildOffersBanner(),
+                        PopIn(order: 1, child: _buildOffersBanner()),
                         SizedBox(height: 22.0 * scale),
-                        Padding(padding: insetPadding, child: _buildPrimaryRow(context, scale)),
+                        PopIn(
+                          order: 2,
+                          child: Padding(padding: insetPadding, child: _buildPrimaryRow(context, scale)),
+                        ),
                         SizedBox(height: 14.0 * scale),
-                        Padding(padding: insetPadding, child: _buildSecondaryRow(context, scale)),
+                        PopIn(
+                          order: 3,
+                          child: Padding(padding: insetPadding, child: _buildSecondaryRow(context, scale)),
+                        ),
                         const SizedBox(height: 24.0),
                       ],
                     ),
@@ -89,10 +102,7 @@ class HomeScreen extends StatelessWidget {
           asset: 'assets/home/icon_settings.png',
           tooltip: 'Settings',
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SettingsScreen()),
-            );
+            Navigator.push(context, tamTamRoute((context) => const SettingsScreen()));
           },
         ),
       ],
@@ -159,10 +169,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   void _navigateToMatchSetup(BuildContext context, String type) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => MatchSetupScreen(gameType: type)),
-    );
+    Navigator.push(context, tamTamRoute((context) => MatchSetupScreen(gameType: type)));
   }
 
   void _showProfileDialog(BuildContext context) {
@@ -222,7 +229,7 @@ class _HeaderImageButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: tooltip,
-      child: _PressableCard(
+      child: PressableScale(
         onTap: onPressed,
         child: Image.asset(asset, width: 40.0 * scale, height: 40.0 * scale),
       ),
@@ -280,58 +287,6 @@ class _ModeCard extends StatelessWidget {
     if (onTap == null) {
       return Opacity(opacity: 0.85, child: content);
     }
-    return _PressableCard(onTap: onTap!, child: content);
-  }
-}
-
-class _PressableCard extends StatefulWidget {
-  const _PressableCard({required this.child, required this.onTap});
-
-  final Widget child;
-
-  final void Function() onTap;
-
-  @override
-  State<_PressableCard> createState() {
-    return _PressableCardState();
-  }
-}
-
-class _PressableCardState extends State<_PressableCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 100),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.96,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _controller.forward(),
-      onTapUp: (_) {
-        _controller.reverse();
-        widget.onTap();
-      },
-      onTapCancel: () => _controller.reverse(),
-      child: ScaleTransition(scale: _scaleAnimation, child: widget.child),
-    );
+    return PressableScale(onTap: onTap!, child: content);
   }
 }
