@@ -75,7 +75,7 @@ void main() {
       ));
       await tester.pump(const Duration(milliseconds: 900)); // entrance animation
 
-      await tester.tap(find.text('REMATCH'));
+      await tester.tap(find.byKey(const Key('resultScreenRematchButton')));
       await tester.pump();
       for (var i = 0; i < 20; i++) {
         await tester.pump(const Duration(milliseconds: 50)); // page transition

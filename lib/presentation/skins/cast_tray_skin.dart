@@ -25,4 +25,17 @@ class CastTraySkin {
       ),
     ),
   );
+
+  /// Final neutral gold/burgundy tray with four baked-in cube recesses.
+  /// Active-player accent is drawn externally (see CastTray) rather than
+  /// recoloring this asset.
+  static final tamtam = CastTraySkin(
+    id: 'tamtam_tray',
+    displayName: 'TamTam Tray',
+    backgroundBuilder: (context) => Image.asset(
+      'assets/skins/cast_trays/cast_tray.png',
+      fit: BoxFit.fill,
+      errorBuilder: (context, error, stackTrace) => placeholder.backgroundBuilder(context),
+    ),
+  );
 }

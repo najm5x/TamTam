@@ -35,4 +35,15 @@ class TamTamSkinPack {
     dice: DiceSkin.placeholder,
     castTray: CastTraySkin.placeholder,
   );
+
+  /// The final, shipped TamTam art set.
+  static final tamtam = TamTamSkinPack(
+    id: 'tamtam_pack',
+    displayName: 'TamTam',
+    board: BoardSkin.tamtam,
+    profileFrame: ProfileFrameSkin.tamtam,
+    piece: PieceSkin.tamtam,
+    dice: DiceSkin.tamtam,
+    castTray: CastTraySkin.tamtam,
+  );
 }

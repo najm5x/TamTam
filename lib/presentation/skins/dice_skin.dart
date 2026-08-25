@@ -27,4 +27,21 @@ class DiceSkin {
       ),
     ),
   );
+
+  /// Final binary TamTam cube: cube_white.png / cube_black.png. Still just
+  /// two faces -- no pips, no numeric result -- see DiceSkinContract.
+  static final tamtam = DiceSkin(
+    id: 'tamtam_dice',
+    displayName: 'TamTam Cube',
+    faceBuilder: (context, face) {
+      final asset = face == Face.white
+          ? 'assets/skins/cubes/cube_white.png'
+          : 'assets/skins/cubes/cube_black.png';
+      return Image.asset(
+        asset,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => placeholder.faceBuilder(context, face),
+      );
+    },
+  );
 }

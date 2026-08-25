@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:tamtam/presentation/theme/app_theme.dart';
+import 'package:tamtam/presentation/widgets/player_portrait.dart';
 
-class PlayerHud extends StatefulWidget {
-  final String name;
-  final Color color;
-  final bool isActive;
-  final bool isBot;
-
+class PlayerHud extends StatelessWidget {
   const PlayerHud({
     super.key,
     required this.name,
@@ -14,100 +11,61 @@ class PlayerHud extends StatefulWidget {
     this.isBot = false,
   });
 
-  @override
-  State<PlayerHud> createState() => _PlayerHudState();
-}
+  final String name;
 
-class _PlayerHudState extends State<PlayerHud> with SingleTickerProviderStateMixin {
-  late final AnimationController _pulseController;
-  late final Animation<double> _pulseAnimation;
+  final Color color;
 
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
-      CurvedAnimation(
-        parent: _pulseController,
-        curve: Curves.easeInOut,
-      ),
-    );
+  final bool isActive;
 
-    if (widget.isActive) {
-      _pulseController.repeat(reverse: true);
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant PlayerHud oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isActive && !oldWidget.isActive) {
-      _pulseController.repeat(reverse: true);
-    } else if (!widget.isActive && oldWidget.isActive) {
-      _pulseController.animateTo(0.0, duration: const Duration(milliseconds: 300));
-    }
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
+  final bool isBot;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 38,
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      height: 54.0,
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+      decoration: BoxDecoration(
+        color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(24.0),
+        // Width stays fixed across active/inactive (only color changes) --
+        // see cast_tray.dart's border comment: a BoxDecoration border width
+        // becomes extra Container padding, so a width that changed with
+        // isActive would nudge this chip's own footprint by a px on every
+        // turn change.
+        border: Border.all(
+          color: isActive ? color : const Color(0x14000000),
+          width: 2.0,
+        ),
+        boxShadow: [
+          if (isActive)
+            BoxShadow(
+              color: color.withValues(alpha: 0.25),
+              blurRadius: 10.0,
+              offset: const Offset(0.0, 3.0),
+            )
+          else
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 4.0,
+              offset: const Offset(0.0, 2.0),
+            ),
+        ],
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AnimatedBuilder(
-            animation: _pulseAnimation,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: widget.isActive ? _pulseAnimation.value : 1.0,
-                child: Container(
-                  width: 18,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: widget.color,
-                    boxShadow: widget.isActive
-                        ? [
-                            BoxShadow(
-                              color: widget.color.withOpacity(0.6),
-                              blurRadius: 8,
-                              spreadRadius: 2,
-                            )
-                          ]
-                        : null,
-                  ),
-                  child: widget.isBot
-                      ? const Center(
-                          child: Icon(
-                            Icons.smart_toy,
-                            size: 10,
-                            color: Colors.white,
-                          ),
-                        )
-                      : null,
-                ),
-              );
-            },
-          ),
-          const SizedBox(width: 8),
+          PlayerPortrait(size: 42.0, accentColor: color, isActive: isActive, isBot: isBot),
+          const SizedBox(width: 8.0),
           AnimatedDefaultTextStyle(
             duration: const Duration(milliseconds: 300),
             style: TextStyle(
-              fontSize: 14,
-              color: widget.isActive ? Colors.black87 : Colors.black54,
-              fontWeight: widget.isActive ? FontWeight.bold : FontWeight.normal,
+              fontSize: 13.0,
+              fontFamily: 'Plus Jakarta Sans',
+              color: isActive ? AppTheme.primaryDark : AppTheme.textSecondary,
+              fontWeight: isActive ? FontWeight.w900 : FontWeight.w600,
             ),
-            child: Text(widget.name),
+            child: Text(name),
           ),
         ],
       ),

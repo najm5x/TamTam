@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'presentation/screens/home_screen.dart';
-import 'presentation/theme/app_theme.dart';
+import 'package:tamtam/presentation/screens/home_screen.dart';
+import 'package:tamtam/presentation/theme/app_theme.dart';
 
 void main() {
   runApp(const TamTamApp());

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
-import '../../domain/models/game_state.dart';
-import 'match_screen.dart';
+import 'package:tamtam/domain/models/game_state.dart';
+import 'package:tamtam/presentation/screens/match_screen.dart';
+import 'package:tamtam/presentation/widgets/tamtam_background.dart';
+import 'package:tamtam/presentation/widgets/player_portrait.dart';
 
+/// Victory screen: the custom winner-board asset (blue portrait circle +
+/// ivory name plaque + baked-in WINNER art) is the entire visual, with only
+/// the winner's live profile/name overlaid at runtime and the two custom
+/// button assets below it. No separate heading, stats, or cards -- see the
+/// "complete simplification" product decision.
 class ResultScreen extends StatefulWidget {
-  final String winnerName;
-  final Color winnerColor;
-  final GameState finishedState;
-
   const ResultScreen({
     super.key,
     required this.winnerName,
@@ -15,26 +17,35 @@ class ResultScreen extends StatefulWidget {
     required this.finishedState,
   });
 
+  final String winnerName;
+
+  final Color winnerColor;
+
+  final GameState finishedState;
+
   @override
-  State<ResultScreen> createState() => _ResultScreenState();
+  State<ResultScreen> createState() {
+    return _ResultScreenState();
+  }
 }
 
-class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _animController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
+class _ResultScreenState extends State<ResultScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animController;
+
+  late final Animation<double> _fadeAnimation;
+
+  late final Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 600),
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
-    );
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
+    _fadeAnimation = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
+    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
       CurvedAnimation(parent: _animController, curve: Curves.easeOutBack),
     );
     _animController.forward();
@@ -46,11 +57,15 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     super.dispose();
   }
 
+  // Unchanged rematch semantics: same rule profile/seats/roles, everyone
+  // reset to mode start, winner/extra-cast state cleared.
   void _rematch() {
     final original = widget.finishedState;
     final profile = original.ruleProfile;
     final freshPlayers = original.players
-        .map((p) => p.copyWith(progress: profile.startProgress, isWinner: false))
+        .map(
+          (p) => p.copyWith(progress: profile.startProgress, isWinner: false),
+        )
         .toList();
     final freshState = GameState(
       players: freshPlayers,
@@ -65,211 +80,135 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     );
   }
 
+  void _goHome() {
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              widget.winnerColor.withOpacity(0.1),
-              widget.winnerColor.withOpacity(0.3),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Stack(
-          children: [
-            const Positioned.fill(
-              child: _ConfettiBackground(),
-            ),
-            SafeArea(
-              child: AnimatedBuilder(
-                animation: _animController,
-                builder: (context, child) {
-                  return FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SlideTransition(
-                      position: _slideAnimation,
-                      child: child,
+      body: TamTamBackground(
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AspectRatio(
+                          aspectRatio: 1.0,
+                          child: _WinnerBoard(
+                            winnerName: widget.winnerName,
+                            winnerColor: widget.winnerColor,
+                          ),
+                        ),
+                        const SizedBox(height: 28.0),
+                        _ImageButton(
+                          key: const Key('resultScreenRematchButton'),
+                          asset: 'assets/victory/button_rematch.png',
+                          onTap: _rematch,
+                        ),
+                        const SizedBox(height: 14.0),
+                        _ImageButton(
+                          key: const Key('resultScreenHomeButton'),
+                          asset: 'assets/victory/button_home.png',
+                          onTap: _goHome,
+                        ),
+                      ],
                     ),
-                  );
-                },
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.emoji_events,
-                        size: 80,
-                        color: Color(0xFFF4A261),
-                      ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'VICTORY!',
-                        style: TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 8.0,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        widget.winnerName,
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: widget.winnerColor,
-                        ),
-                      ),
-                      const SizedBox(height: 60),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 40),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            ElevatedButton(
-                              onPressed: _rematch,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFF4A261),
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: const Text(
-                                'REMATCH',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            OutlinedButton(
-                              onPressed: () {
-                                Navigator.of(context).popUntil((route) => route.isFirst);
-                              },
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                side: const BorderSide(color: Colors.black54, width: 2),
-                              ),
-                              child: const Text(
-                                'HOME',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                   ),
                 ),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _ConfettiBackground extends StatefulWidget {
-  const _ConfettiBackground();
+/// The custom winner-board art plus its two runtime overlays. Placement
+/// ratios are normalized to the board's own width/height per the product
+/// spec (profile center ~0.50,0.355; name center ~0.50,0.585) so they track
+/// the board at any screen size without touching the baked-in artwork.
+class _WinnerBoard extends StatelessWidget {
+  const _WinnerBoard({required this.winnerName, required this.winnerColor});
 
-  @override
-  State<_ConfettiBackground> createState() => _ConfettiBackgroundState();
-}
+  final String winnerName;
 
-class _ConfettiBackgroundState extends State<_ConfettiBackground> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  final Random _random = Random();
-  late final List<_ConfettiParticle> _particles;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 5),
-    )..repeat();
-
-    _particles = List.generate(40, (index) {
-      return _ConfettiParticle(
-        x: _random.nextDouble(),
-        y: _random.nextDouble(),
-        speed: 0.1 + _random.nextDouble() * 0.3,
-        color: Colors.primaries[_random.nextInt(Colors.primaries.length)],
-        size: 4.0 + _random.nextDouble() * 6.0,
-      );
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final Color winnerColor;
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return CustomPaint(
-          painter: _ConfettiPainter(_particles, _controller.value),
-        );
-      },
+    return Stack(
+      fit: StackFit.expand,
+      alignment: Alignment.center,
+      children: [
+        Image.asset('assets/victory/winner_board.png', fit: BoxFit.contain),
+        Align(
+          alignment: const Alignment(0.0, -0.29), // y=0.355 of board height
+          child: FractionallySizedBox(
+            widthFactor: 0.29,
+            child: AspectRatio(
+              aspectRatio: 1.0,
+              child: LayoutBuilder(
+                builder: (context, constraints) => PlayerPortrait(
+                  size: constraints.maxWidth,
+                  accentColor: winnerColor,
+                ),
+              ),
+            ),
+          ),
+        ),
+        Align(
+          alignment: const Alignment(0.0, 0.17), // y=0.585 of board height
+          child: FractionallySizedBox(
+            widthFactor: 0.53,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                winnerName,
+                maxLines: 1,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 30.0,
+                  letterSpacing: 0.5,
+                  color: Color(0xFF3B0A14),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _ConfettiParticle {
-  final double x;
-  final double y;
-  final double speed;
-  final Color color;
-  final double size;
+/// A custom button PNG used as-is for both its visual and its tap target --
+/// the entire visible asset is tappable, no separate Flutter button chrome.
+class _ImageButton extends StatelessWidget {
+  const _ImageButton({super.key, required this.asset, required this.onTap});
 
-  _ConfettiParticle({
-    required this.x,
-    required this.y,
-    required this.speed,
-    required this.color,
-    required this.size,
-  });
-}
+  final String asset;
 
-class _ConfettiPainter extends CustomPainter {
-  final List<_ConfettiParticle> particles;
-  final double progress;
-
-  _ConfettiPainter(this.particles, this.progress);
+  final void Function() onTap;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-    for (var particle in particles) {
-      paint.color = particle.color;
-      final currentY = (particle.y + progress * particle.speed) % 1.0;
-      canvas.drawCircle(
-        Offset(particle.x * size.width, currentY * size.height),
-        particle.size,
-        paint,
-      );
-    }
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AspectRatio(
+        aspectRatio: 3.0,
+        child: Image.asset(asset, fit: BoxFit.contain),
+      ),
+    );
   }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

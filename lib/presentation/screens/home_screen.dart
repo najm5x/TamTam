@@ -1,319 +1,306 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
-import 'match_setup_screen.dart';
-import 'settings_screen.dart';
-import 'visual_calibration_screen.dart';
+import 'package:tamtam/presentation/theme/app_theme.dart';
+import 'package:tamtam/presentation/screens/settings_screen.dart';
+import 'package:tamtam/presentation/screens/match_setup_screen.dart';
+import 'package:tamtam/presentation/widgets/player_portrait.dart';
+import 'package:tamtam/presentation/widgets/tamtam_background.dart';
+import 'package:tamtam/presentation/widgets/home_sparkle_layer.dart';
+import 'package:tamtam/presentation/widgets/home_offers_carousel.dart';
 
+/// Home is fully art-driven: home_background.png fills the screen and the
+/// mode cards are the supplied PNGs (frame/background already baked in) with
+/// Flutter-rendered labels on top, per the final product decisions -- no
+/// Quick Play, no Blitz card (Blitz stays a rule choice inside match setup).
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.surfaceBg,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.warmGradient,
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(context),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  children: [
-                    _buildGameModeCard(
-                      context,
-                      title: '2 PLAYER',
-                      icon: Icons.people,
-                      colors: const [Color(0xFFF4A261), Color(0xFFE76F51)],
-                      onTap: () => _navigateToMatchSetup(context, '2 Player'),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildGameModeCard(
-                      context,
-                      title: '4 PLAYER',
-                      icon: Icons.groups,
-                      colors: const [Color(0xFF5BA4A4), Color(0xFF2A9D8F)],
-                      onTap: () => _navigateToMatchSetup(context, '4 Player'),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildGameModeCard(
-                      context,
-                      title: 'PLAY BOT',
-                      icon: Icons.smart_toy,
-                      colors: const [Color(0xFF967E96), Color(0xFF6B5B95)],
-                      onTap: () => _navigateToMatchSetup(context, 'Bot'),
-                    ),
-                    const SizedBox(height: 32),
-                    const Text(
-                      'COMING SOON',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.textSecondary,
-                        letterSpacing: 2.0,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
+      body: TamTamBackground(
+        child: Stack(
+          children: [
+            const Positioned.fill(child: HomeSparkleLayer()),
+            SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Sizes below are authored in dp against a ~390dp reference
+                  // phone width (not the 1080 art canvas, which is a pixel
+                  // coordinate space for board/skin geometry, not dp layout)
+                  // and scale proportionally from there, clamped so very
+                  // narrow/wide screens don't shrink text unreadably or blow
+                  // up past intent.
+                  final scale = (constraints.maxWidth / 390).clamp(0.85, 1.3).toDouble();
+                  const horizontalInset = 20.0;
+                  final insetPadding = EdgeInsets.symmetric(horizontal: horizontalInset * scale);
+                  // Horizontal inset is applied per-child (not on the
+                  // ScrollView) so the banner below can skip it and bleed to
+                  // the screen edge -- rendering meaningfully larger than the
+                  // old content-width version while keeping its native aspect
+                  // ratio; BoxFit.contain still never stretches or crops it.
+                  return SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Column(
                       children: [
-                        Expanded(
-                          child: _buildComingSoonCard(
-                            title: 'Private Table',
-                            icon: Icons.lock,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildComingSoonCard(
-                            title: 'Online Match',
-                            icon: Icons.public,
-                          ),
-                        ),
+                        Padding(padding: insetPadding, child: _buildHeader(context, scale)),
+                        SizedBox(height: 18.0 * scale),
+                        _buildOffersBanner(),
+                        SizedBox(height: 22.0 * scale),
+                        Padding(padding: insetPadding, child: _buildPrimaryRow(context, scale)),
+                        SizedBox(height: 14.0 * scale),
+                        Padding(padding: insetPadding, child: _buildSecondaryRow(context, scale)),
+                        const SizedBox(height: 24.0),
                       ],
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
-              _buildBottomNav(context),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'TAMTAM',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-              color: AppTheme.primaryDark,
-              letterSpacing: 4.0,
-            ),
+  Widget _buildHeader(BuildContext context, double scale) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => _showProfileDialog(context),
+          child: PlayerPortrait(size: 58.0 * scale, accentColor: AppTheme.accentLight),
+        ),
+        const Spacer(),
+        Image.asset(
+          'assets/home/tamtam_logo.png',
+          height: 62.0 * scale,
+          fit: BoxFit.contain,
+        ),
+        const Spacer(),
+        _HeaderImageButton(
+          scale: scale,
+          asset: 'assets/home/icon_gift.png',
+          tooltip: 'Gifts',
+          onPressed: () {},
+        ),
+        SizedBox(width: 8.0 * scale),
+        _HeaderImageButton(
+          scale: scale,
+          asset: 'assets/home/icon_settings.png',
+          tooltip: 'Settings',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SettingsScreen()),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOffersBanner() {
+    return const HomeOffersCarousel();
+  }
+
+  Widget _buildPrimaryRow(BuildContext context, double scale) {
+    return Row(
+      children: [
+        Expanded(
+          child: _ModeCard(
+            asset: 'assets/home/mode_2player.png',
+            label: '2 PLAYER',
+            labelSize: 17.0 * scale,
+            onTap: () => _navigateToMatchSetup(context, '2 Player'),
           ),
-          Row(
-            children: [
-              if (!kReleaseMode)
-                IconButton(
-                  icon: const Icon(Icons.straighten, color: AppTheme.primaryDark),
-                  tooltip: 'Visual calibration (debug)',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const VisualCalibrationScreen()),
-                    );
-                  },
-                ),
-              IconButton(
-                icon: const Icon(Icons.settings, color: AppTheme.primaryDark),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                  );
-                },
-              ),
-            ],
+        ),
+        SizedBox(width: 14.0 * scale),
+        Expanded(
+          child: _ModeCard(
+            asset: 'assets/home/mode_4player.png',
+            label: '4 PLAYER',
+            labelSize: 17.0 * scale,
+            onTap: () => _navigateToMatchSetup(context, '4 Player'),
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSecondaryRow(BuildContext context, double scale) {
+    return Row(
+      children: [
+        Expanded(
+          child: _ModeCard(
+            asset: 'assets/home/mode_bot.png',
+            label: 'PLAY BOT',
+            labelSize: 13.0 * scale,
+            onTap: () => _navigateToMatchSetup(context, 'Play Bot'),
+          ),
+        ),
+        SizedBox(width: 10.0 * scale),
+        Expanded(
+          child: _ModeCard(
+            asset: 'assets/home/mode_private.png',
+            label: 'PRIVATE',
+            labelSize: 13.0 * scale,
+          ),
+        ),
+        SizedBox(width: 10.0 * scale),
+        Expanded(
+          child: _ModeCard(
+            asset: 'assets/home/mode_offline.png',
+            label: 'OFFLINE',
+            labelSize: 13.0 * scale,
+          ),
+        ),
+      ],
     );
   }
 
   void _navigateToMatchSetup(BuildContext context, String type) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => MatchSetupScreen(gameType: type),
-      ),
+      MaterialPageRoute(builder: (context) => MatchSetupScreen(gameType: type)),
     );
   }
 
-  Widget _buildGameModeCard(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required List<Color> colors,
-    required VoidCallback onTap,
-  }) {
-    return _PressableCard(
-      onTap: onTap,
-      child: Container(
-        height: 100,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            colors: colors,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: colors.last.withOpacity(0.4),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+  void _showProfileDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24.0),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28.0)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40.0,
+              height: 4.0,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2.0),
+              ),
             ),
+            const SizedBox(height: 20.0),
+            const PlayerPortrait(size: 72.0, accentColor: AppTheme.accent),
+            const SizedBox(height: 12.0),
+            const Text(
+              'Player 1',
+              style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.primaryDark,
+              ),
+            ),
+            const SizedBox(height: 20.0),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: Colors.white, size: 32),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-              ),
-              const Icon(Icons.chevron_right, color: Colors.white, size: 28),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildComingSoonCard({required String title, required IconData icon}) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withOpacity(0.1)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: AppTheme.textSecondary.withOpacity(0.5), size: 28),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.textSecondary.withOpacity(0.8),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppTheme.textSecondary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              'COMING SOON',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textSecondary.withOpacity(0.8),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNav(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(24),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppTheme.cardBg,
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _NavItem(icon: Icons.home_rounded, label: 'Home', isSelected: true),
-          _NavItem(icon: Icons.play_arrow_rounded, label: 'Play', isSelected: false),
-          _NavItem(icon: Icons.person_rounded, label: 'Profile', isSelected: false),
-        ],
       ),
     );
   }
 }
 
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.isSelected,
+class _HeaderImageButton extends StatelessWidget {
+  const _HeaderImageButton({
+    required this.scale,
+    required this.asset,
+    required this.tooltip,
+    required this.onPressed,
   });
+
+  final double scale;
+  final String asset;
+  final String tooltip;
+  final void Function() onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Tooltip(
+      message: tooltip,
+      child: _PressableCard(
+        onTap: onPressed,
+        child: Image.asset(asset, width: 40.0 * scale, height: 40.0 * scale),
+      ),
+    );
+  }
+}
+
+class _ModeCard extends StatelessWidget {
+  const _ModeCard({
+    required this.asset,
+    required this.label,
+    required this.labelSize,
+    this.onTap,
+  });
+
+  final String asset;
+  final String label;
+  final double labelSize;
+  final void Function()? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final content = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          color: isSelected ? AppTheme.accent : AppTheme.textSecondary.withOpacity(0.5),
-          size: 28,
+        AspectRatio(
+          aspectRatio: 1,
+          child: Image.asset(asset, fit: BoxFit.contain),
         ),
-        if (isSelected) ...[
-          const SizedBox(height: 4),
-          Container(
-            width: 4,
-            height: 4,
-            decoration: const BoxDecoration(
-              color: AppTheme.accent,
-              shape: BoxShape.circle,
-            ),
+        SizedBox(height: labelSize * 0.4),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: labelSize,
+            fontWeight: FontWeight.w900,
+            fontFamily: 'Plus Jakarta Sans',
+            color: const Color(0xFFFCE9BE),
+            letterSpacing: 1.2,
+            height: 1.0,
+            shadows: const [
+              // Tight dark-navy outline-ish core so the ivory reads crisply
+              // against any part of the background art...
+              Shadow(color: Color(0xFF1B0F2E), blurRadius: 1.0, offset: Offset(-1, 0)),
+              Shadow(color: Color(0xFF1B0F2E), blurRadius: 1.0, offset: Offset(1, 0)),
+              Shadow(color: Color(0xFF1B0F2E), blurRadius: 1.0, offset: Offset(0, -1)),
+              Shadow(color: Color(0xFF1B0F2E), blurRadius: 1.0, offset: Offset(0, 1)),
+              // ...plus a soft burgundy drop shadow for depth.
+              Shadow(color: Color(0xFF3B0A14), blurRadius: 5.0, offset: Offset(0, 2)),
+            ],
           ),
-        ],
+        ),
       ],
     );
+    if (onTap == null) {
+      return Opacity(opacity: 0.85, child: content);
+    }
+    return _PressableCard(onTap: onTap!, child: content);
   }
 }
 
 class _PressableCard extends StatefulWidget {
-  final Widget child;
-  final VoidCallback onTap;
-
   const _PressableCard({required this.child, required this.onTap});
 
+  final Widget child;
+
+  final void Function() onTap;
+
   @override
-  State<_PressableCard> createState() => _PressableCardState();
+  State<_PressableCard> createState() {
+    return _PressableCardState();
+  }
 }
 
-class _PressableCardState extends State<_PressableCard> with SingleTickerProviderStateMixin {
+class _PressableCardState extends State<_PressableCard>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+
   late Animation<double> _scaleAnimation;
 
   @override
@@ -323,9 +310,10 @@ class _PressableCardState extends State<_PressableCard> with SingleTickerProvide
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.96,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -343,10 +331,7 @@ class _PressableCardState extends State<_PressableCard> with SingleTickerProvide
         widget.onTap();
       },
       onTapCancel: () => _controller.reverse(),
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: widget.child,
-      ),
+      child: ScaleTransition(scale: _scaleAnimation, child: widget.child),
     );
   }
 }

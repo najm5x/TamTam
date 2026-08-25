@@ -15,8 +15,8 @@ class ProfileFrameSkin {
   });
 
   static final placeholder = ProfileFrameSkin(
-    id: 'placeholder_frame',
-    displayName: 'Placeholder Frame',
+    id: 'default_frame',
+    displayName: 'Default Frame',
     builder: (context) => DecoratedBox(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
@@ -24,4 +24,32 @@ class ProfileFrameSkin {
       ),
     ),
   );
+
+  /// First test skin proving a real asset can drop into the frame slot.
+  /// Falls back to [placeholder] if assets/skins/frames/custom_frame_01.png
+  /// is missing -- see that folder's README for the expected artwork.
+  static final customTest = ProfileFrameSkin(
+    id: 'custom_frame_test',
+    displayName: 'Custom Frame Test',
+    builder: (context) => Image.asset(
+      'assets/skins/frames/custom_frame_01.png',
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) => placeholder.builder(context),
+    ),
+  );
+
+  /// Final shared profile-frame ring, reused unchanged across Home and every
+  /// gameplay HUD seat (see PlayerPortrait). The avatar is a separate layer
+  /// underneath -- this asset is transparent at its center by design.
+  static final tamtam = ProfileFrameSkin(
+    id: 'tamtam_frame',
+    displayName: 'TamTam Frame',
+    builder: (context) => Image.asset(
+      'assets/shared/profiles/profile_frame_default.png',
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) => placeholder.builder(context),
+    ),
+  );
+
+  static final List<ProfileFrameSkin> all = [tamtam, placeholder, customTest];
 }

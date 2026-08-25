@@ -43,7 +43,7 @@ class PieceContract {
   PieceContract._();
 
   static const double artCanvasSize = 512;
-  static const double normalSizeRatio = 0.68;
+  static const double normalSizeRatio = 0.80;
   static const double stackedSizeRatio = 0.44;
 
   static double normalSize(double cellSize) => normalSizeRatio * cellSize;

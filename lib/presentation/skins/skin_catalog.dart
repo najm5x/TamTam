@@ -6,6 +6,7 @@ class SkinCatalog {
   SkinCatalog._();
 
   static final List<TamTamSkinPack> packs = [
+    TamTamSkinPack.tamtam,
     TamTamSkinPack.placeholder,
   ];
 

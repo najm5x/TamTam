@@ -1,22 +1,26 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../domain/models/cast_result.dart';
+import '../skins/skin_catalog.dart';
 
 class TamTamCube extends StatefulWidget {
   final Face face;
   final bool isAnimating;
+  final double size;
 
   const TamTamCube({
     Key? key,
     required this.face,
     this.isAnimating = false,
+    this.size = 44.0,
   }) : super(key: key);
 
   @override
   State<TamTamCube> createState() => _TamTamCubeState();
 }
 
-class _TamTamCubeState extends State<TamTamCube> with SingleTickerProviderStateMixin {
+class _TamTamCubeState extends State<TamTamCube>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -55,44 +59,23 @@ class _TamTamCubeState extends State<TamTamCube> with SingleTickerProviderStateM
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        double angleX = 0;
-        double angleZ = 0;
-
+        double angleX = 0.0;
+        double angleZ = 0.0;
         if (widget.isAnimating) {
           angleX = _controller.value * 2 * pi;
           angleZ = _controller.value * 2 * pi;
         }
-
-        final topColor = widget.face == Face.white 
-            ? const Color(0xFFFFFFF0) 
-            : const Color(0xFF2D2D2D);
-
         return Transform(
           transform: Matrix4.identity()
-            ..setEntry(3, 2, 0.001) // perspective
+            ..setEntry(3, 2, 0.001)
             ..rotateX(angleX)
             ..rotateZ(angleZ),
           alignment: Alignment.center,
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: topColor,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 2,
-                  offset: const Offset(1, 2),
-                ),
-                BoxShadow(
-                  color: const Color(0xFF9E9E9E), // Neutral grey for 3D depth
-                  blurRadius: 0,
-                  offset: const Offset(2, 4),
-                ),
-              ],
-              border: Border.all(color: Colors.white24, width: 1),
-            ),
+          origin: const Offset(0.0, 0.0),
+          child: SizedBox(
+            width: widget.size,
+            height: widget.size,
+            child: SkinCatalog.defaultPack.dice.faceBuilder(context, widget.face),
           ),
         );
       },

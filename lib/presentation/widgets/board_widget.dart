@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 import 'board_cell_view.dart';
+import '../skins/board_skin.dart';
+import '../skins/skin_selection.dart';
+import '../layout/board_geometry.dart';
 import '../../domain/models/game_state.dart';
 import '../../domain/models/seat.dart';
 import '../../domain/routes/canonical_routes.dart';
@@ -23,8 +25,6 @@ class BoardWidget extends StatelessWidget {
       aspectRatio: 1,
       child: Container(
         decoration: BoxDecoration(
-          color: AppTheme.boardBackground,
-          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
@@ -33,12 +33,40 @@ class BoardWidget extends StatelessWidget {
             ),
           ],
         ),
-        clipBehavior: Clip.antiAlias,
-        child: _buildGrid(),
+        // Cell centers/geometry stay fully programmatic (Column/Row of
+        // Expanded cells below, one per canonical coordinate) -- only the
+        // Home/Gate/Finish *visuals* now come from the board skin's art,
+        // never gameplay truth or pixel-based hit-testing.
+        child: ValueListenableBuilder<BoardSkin>(
+          valueListenable: SkinSelection.board,
+          builder: (context, boardSkin, _) {
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                boardSkin.backgroundBuilder(context),
+                // The board art's playable grid is inset from the full
+                // canvas (BoardGeometry.gridStartRatio..gridEndRatio, i.e.
+                // 5% per side on the 1080 design canvas) -- the piece grid
+                // must be inset by exactly that fraction too, or pieces sit
+                // off the art's actual cell centers.
+                FractionallySizedBox(
+                  alignment: Alignment.center,
+                  widthFactor: BoardGeometry.gridSize / BoardGeometry.canvasSize,
+                  heightFactor: BoardGeometry.gridSize / BoardGeometry.canvasSize,
+                  child: _buildGrid(),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
+  // board_tamtam_01.png already bakes in neutral cells, Home fills, gate
+  // arrows, and the Finish ornament for AppTheme.seatColor's palette (see
+  // BoardSkin.tamtam) -- the grid below only positions pieces on top of it,
+  // it no longer paints any semantic overlay itself.
   Widget _buildGrid() {
     return Column(
       children: List.generate(9, (y) {
@@ -47,27 +75,9 @@ class BoardWidget extends StatelessWidget {
             children: List.generate(9, (x) {
               final coord = _toCoordinate(x, y);
               final pieces = _getPiecesAt(coord);
-              final homeColor = _getHomeColor(coord);
-              final gateInfo = _getGateInfo(coord);
-              final preFinishInfo = _getPreFinishInfo(coord);
-
-              Color? cellColor;
-              if (coord == 'E5') {
-                cellColor = AppTheme.centerCellColor;
-              } else if (homeColor != null) {
-                cellColor = homeColor;
-              }
 
               return Expanded(
-                child: BoardCellView(
-                  coordinate: coord,
-                  cellColor: cellColor,
-                  pieces: pieces,
-                  gateForSeat: gateInfo?.$1,
-                  gateDirection: gateInfo?.$2,
-                  isPreFinish: preFinishInfo != null,
-                  preFinishColor: preFinishInfo,
-                ),
+                child: BoardCellView(coordinate: coord, pieces: pieces),
               );
             }),
           ),
@@ -81,37 +91,6 @@ class BoardWidget extends StatelessWidget {
     final col = cols[x];
     final row = y + 1;
     return '$col$row';
-  }
-
-  /// Only Home cells get full player-color fill
-  Color? _getHomeColor(String coord) {
-    if (coord == 'E1') return AppTheme.topPlayerColor;
-    if (coord == 'I5') return AppTheme.rightPlayerColor;
-    if (coord == 'E9') return AppTheme.bottomPlayerColor;
-    if (coord == 'A5') return AppTheme.leftPlayerColor;
-    return null;
-  }
-
-  /// Gate cells: returns (seat, direction) for the arrow
-  (Seat, String)? _getGateInfo(String coord) {
-    // Top gate H1: arrow points down (inward toward H2)
-    if (coord == 'H1') return (Seat.top, 'down');
-    // Right gate I8: arrow points left (inward toward H8)
-    if (coord == 'I8') return (Seat.right, 'left');
-    // Bottom gate B9: arrow points up (inward toward B8)
-    if (coord == 'B9') return (Seat.bottom, 'up');
-    // Left gate A2: arrow points right (inward toward B2)
-    if (coord == 'A2') return (Seat.left, 'right');
-    return null;
-  }
-
-  /// Pre-finish cells: returns the player's color for subtle accent
-  Color? _getPreFinishInfo(String coord) {
-    if (coord == 'E4') return AppTheme.topPlayerColor;
-    if (coord == 'F5') return AppTheme.rightPlayerColor;
-    if (coord == 'E6') return AppTheme.bottomPlayerColor;
-    if (coord == 'D5') return AppTheme.leftPlayerColor;
-    return null;
   }
 
   List<Seat> _getPiecesAt(String coord) {
