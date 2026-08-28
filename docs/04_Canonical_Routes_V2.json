@@ -1,0 +1,1608 @@
+{
+  "schemaVersion": "2.1",
+  "project": "TamTam",
+  "ruleset": "V2",
+  "status": "canonical-closed",
+  "date": "2026-08-29",
+  "board": {
+    "widthCells": 5,
+    "heightCells": 5,
+    "columns": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E"
+    ],
+    "rows": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "physicalCellCount": 25,
+    "finish": "C3",
+    "orientation": {
+      "row1": "top",
+      "row5": "bottom",
+      "columnA": "left",
+      "columnE": "right"
+    },
+    "homes": {
+      "green": "C1",
+      "blue": "E3",
+      "yellow": "C5",
+      "red": "A3"
+    },
+    "entrances": {
+      "green": "D1",
+      "blue": "E4",
+      "yellow": "B5",
+      "red": "A2"
+    },
+    "homeSafety": {
+      "safeForAnyPlayer": true,
+      "captureAllowedOnHome": false
+    }
+  },
+  "visualLayoutContract": {
+    "boardCanvasPx": {
+      "width": 1080,
+      "height": 1080
+    },
+    "resolutionPpi": 72,
+    "marginPx": {
+      "top": 50,
+      "right": 50,
+      "bottom": 50,
+      "left": 50
+    },
+    "gameAreaPx": {
+      "width": 980,
+      "height": 980
+    },
+    "cellPx": {
+      "width": 196,
+      "height": 196
+    },
+    "gridOriginPx": {
+      "x": 50,
+      "y": 50
+    },
+    "gridEndPx": {
+      "x": 1030,
+      "y": 1030
+    },
+    "pieceAlignment": "centered on logical cell",
+    "finishLogicalCellRemainsUniform": true,
+    "finishVisualOverlayMayExtendBeyondC3": true,
+    "finishTriangles": {
+      "green": "top",
+      "blue": "right",
+      "yellow": "bottom",
+      "red": "left"
+    },
+    "pieceScaleByCellOccupancy": {
+      "1": 1.0,
+      "2": 0.5,
+      "3": 0.3333333333,
+      "4": 0.25,
+      "5": 0.2,
+      "5+": 0.2
+    },
+    "crowdedCellRule": "For 5+ active pieces, keep each piece at the 5-piece size and overlap additional pieces."
+  },
+  "casting": {
+    "objectCount": 4,
+    "faces": [
+      "white",
+      "black"
+    ],
+    "independentBinaryFaces": true,
+    "outcomes": [
+      {
+        "white": 3,
+        "black": 1,
+        "movement": 2
+      },
+      {
+        "white": 2,
+        "black": 2,
+        "movement": 4
+      },
+      {
+        "white": 1,
+        "black": 3,
+        "movement": 6
+      },
+      {
+        "white": 4,
+        "black": 0,
+        "movement": 8
+      },
+      {
+        "white": 0,
+        "black": 4,
+        "movement": 16
+      }
+    ],
+    "possibleMovementValues": [
+      2,
+      4,
+      6,
+      8,
+      16
+    ]
+  },
+  "journey": {
+    "startProgress": 0,
+    "firstRoundMovementUnits": 16,
+    "secondJourneyMovementUnits": 24,
+    "finishProgress": 40,
+    "allModesUseSameJourneyLength": true,
+    "continuousMovementAcrossRoundBoundary": true,
+    "exactFinishRequired": true,
+    "noOverMove": true,
+    "noUnderMove": true,
+    "noBounce": true
+  },
+  "modes": {
+    "classic": {
+      "piecesPerPlayer": 4,
+      "piecesRequiredToWin": 4
+    },
+    "rapid": {
+      "piecesPerPlayer": 4,
+      "piecesRequiredToWin": 1
+    },
+    "blitz": {
+      "piecesPerPlayer": 1,
+      "piecesRequiredToWin": 1
+    }
+  },
+  "pieceRules": {
+    "allActivePiecesStartOnHome": true,
+    "unlockRequired": false,
+    "oneCastMovesExactlyOnePiece": true,
+    "piecesHaveIndependentProgress": true,
+    "stacksNeverMoveAsAUnit": true,
+    "mustChooseLegalMoveIfAnyExists": true,
+    "ifNoLegalPieceCanUseCast": "no movement; turn ends"
+  },
+  "stacking": {
+    "immunityThresholdActivePiecesOnCell": 2,
+    "ownershipIndependent": true,
+    "anyPlayerMayJoinProtectedStack": true,
+    "landingOnProtectedStackCaptures": false,
+    "immunityEndsWhenOccupancyReturnsToOne": true,
+    "homeSafetyOverridesOrdinaryOccupancyRule": true
+  },
+  "capture": {
+    "exactLandingOnly": true,
+    "passingOverDoesNotCapture": true,
+    "captureTarget": "exactly one vulnerable opponent active piece",
+    "capturedPieceOnlyResets": true,
+    "resetProgress": 0,
+    "successfulCaptureGrantsExactlyOneExtraCast": true
+  },
+  "finish": {
+    "cell": "C3",
+    "finishedPieceStatus": "finished/inactive",
+    "finishedPiecesRemovedFromActiveBoardOccupancy": true,
+    "finishedPiecesCannotMove": true,
+    "finishedPiecesCannotCapture": true,
+    "finishedPiecesCannotBeCaptured": true,
+    "finishedPiecesDoNotAffectStackImmunity": true,
+    "visualPlacement": "player triangle inside C3 finish presentation",
+    "triangleMapping": {
+      "green": "top",
+      "blue": "right",
+      "yellow": "bottom",
+      "red": "left"
+    }
+  },
+  "bot": {
+    "sameEngineAndCastingAsHumans": true,
+    "cheatingAllowed": false,
+    "policy": "safety-aware legal-move scoring",
+    "priorities": [
+      "immediate win",
+      "finish piece",
+      "capture vulnerable opponent",
+      "create or join immune stack",
+      "preserve useful immunity",
+      "avoid unnecessary exposure",
+      "switch pieces when continuation becomes vulnerable",
+      "advance progress"
+    ]
+  },
+  "rotation": {
+    "basePlayer": "green",
+    "blue": "90 clockwise",
+    "yellow": "180",
+    "red": "270 clockwise"
+  },
+  "players": {
+    "green": {
+      "seat": "top",
+      "home": "C1",
+      "entrance": "D1",
+      "preFinish": "C2",
+      "finish": "C3",
+      "firstRoundRoute": [
+        {
+          "progress": 0,
+          "cell": "C1"
+        },
+        {
+          "progress": 1,
+          "cell": "B1"
+        },
+        {
+          "progress": 2,
+          "cell": "A1"
+        },
+        {
+          "progress": 3,
+          "cell": "A2"
+        },
+        {
+          "progress": 4,
+          "cell": "A3"
+        },
+        {
+          "progress": 5,
+          "cell": "A4"
+        },
+        {
+          "progress": 6,
+          "cell": "A5"
+        },
+        {
+          "progress": 7,
+          "cell": "B5"
+        },
+        {
+          "progress": 8,
+          "cell": "C5"
+        },
+        {
+          "progress": 9,
+          "cell": "D5"
+        },
+        {
+          "progress": 10,
+          "cell": "E5"
+        },
+        {
+          "progress": 11,
+          "cell": "E4"
+        },
+        {
+          "progress": 12,
+          "cell": "E3"
+        },
+        {
+          "progress": 13,
+          "cell": "E2"
+        },
+        {
+          "progress": 14,
+          "cell": "E1"
+        },
+        {
+          "progress": 15,
+          "cell": "D1"
+        },
+        {
+          "progress": 16,
+          "cell": "C1"
+        }
+      ],
+      "secondJourneyRoute": [
+        {
+          "progress": 0,
+          "cell": "C1"
+        },
+        {
+          "progress": 1,
+          "cell": "B1"
+        },
+        {
+          "progress": 2,
+          "cell": "A1"
+        },
+        {
+          "progress": 3,
+          "cell": "A2"
+        },
+        {
+          "progress": 4,
+          "cell": "A3"
+        },
+        {
+          "progress": 5,
+          "cell": "A4"
+        },
+        {
+          "progress": 6,
+          "cell": "A5"
+        },
+        {
+          "progress": 7,
+          "cell": "B5"
+        },
+        {
+          "progress": 8,
+          "cell": "C5"
+        },
+        {
+          "progress": 9,
+          "cell": "D5"
+        },
+        {
+          "progress": 10,
+          "cell": "E5"
+        },
+        {
+          "progress": 11,
+          "cell": "E4"
+        },
+        {
+          "progress": 12,
+          "cell": "E3"
+        },
+        {
+          "progress": 13,
+          "cell": "E2"
+        },
+        {
+          "progress": 14,
+          "cell": "E1"
+        },
+        {
+          "progress": 15,
+          "cell": "D1"
+        },
+        {
+          "progress": 16,
+          "cell": "D2"
+        },
+        {
+          "progress": 17,
+          "cell": "D3"
+        },
+        {
+          "progress": 18,
+          "cell": "D4"
+        },
+        {
+          "progress": 19,
+          "cell": "C4"
+        },
+        {
+          "progress": 20,
+          "cell": "B4"
+        },
+        {
+          "progress": 21,
+          "cell": "B3"
+        },
+        {
+          "progress": 22,
+          "cell": "B2"
+        },
+        {
+          "progress": 23,
+          "cell": "C2"
+        },
+        {
+          "progress": 24,
+          "cell": "C3"
+        }
+      ],
+      "unifiedRoute": [
+        {
+          "progress": 0,
+          "cell": "C1"
+        },
+        {
+          "progress": 1,
+          "cell": "B1"
+        },
+        {
+          "progress": 2,
+          "cell": "A1"
+        },
+        {
+          "progress": 3,
+          "cell": "A2"
+        },
+        {
+          "progress": 4,
+          "cell": "A3"
+        },
+        {
+          "progress": 5,
+          "cell": "A4"
+        },
+        {
+          "progress": 6,
+          "cell": "A5"
+        },
+        {
+          "progress": 7,
+          "cell": "B5"
+        },
+        {
+          "progress": 8,
+          "cell": "C5"
+        },
+        {
+          "progress": 9,
+          "cell": "D5"
+        },
+        {
+          "progress": 10,
+          "cell": "E5"
+        },
+        {
+          "progress": 11,
+          "cell": "E4"
+        },
+        {
+          "progress": 12,
+          "cell": "E3"
+        },
+        {
+          "progress": 13,
+          "cell": "E2"
+        },
+        {
+          "progress": 14,
+          "cell": "E1"
+        },
+        {
+          "progress": 15,
+          "cell": "D1"
+        },
+        {
+          "progress": 16,
+          "cell": "C1"
+        },
+        {
+          "progress": 17,
+          "cell": "B1"
+        },
+        {
+          "progress": 18,
+          "cell": "A1"
+        },
+        {
+          "progress": 19,
+          "cell": "A2"
+        },
+        {
+          "progress": 20,
+          "cell": "A3"
+        },
+        {
+          "progress": 21,
+          "cell": "A4"
+        },
+        {
+          "progress": 22,
+          "cell": "A5"
+        },
+        {
+          "progress": 23,
+          "cell": "B5"
+        },
+        {
+          "progress": 24,
+          "cell": "C5"
+        },
+        {
+          "progress": 25,
+          "cell": "D5"
+        },
+        {
+          "progress": 26,
+          "cell": "E5"
+        },
+        {
+          "progress": 27,
+          "cell": "E4"
+        },
+        {
+          "progress": 28,
+          "cell": "E3"
+        },
+        {
+          "progress": 29,
+          "cell": "E2"
+        },
+        {
+          "progress": 30,
+          "cell": "E1"
+        },
+        {
+          "progress": 31,
+          "cell": "D1"
+        },
+        {
+          "progress": 32,
+          "cell": "D2"
+        },
+        {
+          "progress": 33,
+          "cell": "D3"
+        },
+        {
+          "progress": 34,
+          "cell": "D4"
+        },
+        {
+          "progress": 35,
+          "cell": "C4"
+        },
+        {
+          "progress": 36,
+          "cell": "B4"
+        },
+        {
+          "progress": 37,
+          "cell": "B3"
+        },
+        {
+          "progress": 38,
+          "cell": "B2"
+        },
+        {
+          "progress": 39,
+          "cell": "C2"
+        },
+        {
+          "progress": 40,
+          "cell": "C3"
+        }
+      ]
+    },
+    "blue": {
+      "seat": "right",
+      "home": "E3",
+      "entrance": "E4",
+      "preFinish": "D3",
+      "finish": "C3",
+      "firstRoundRoute": [
+        {
+          "progress": 0,
+          "cell": "E3"
+        },
+        {
+          "progress": 1,
+          "cell": "E2"
+        },
+        {
+          "progress": 2,
+          "cell": "E1"
+        },
+        {
+          "progress": 3,
+          "cell": "D1"
+        },
+        {
+          "progress": 4,
+          "cell": "C1"
+        },
+        {
+          "progress": 5,
+          "cell": "B1"
+        },
+        {
+          "progress": 6,
+          "cell": "A1"
+        },
+        {
+          "progress": 7,
+          "cell": "A2"
+        },
+        {
+          "progress": 8,
+          "cell": "A3"
+        },
+        {
+          "progress": 9,
+          "cell": "A4"
+        },
+        {
+          "progress": 10,
+          "cell": "A5"
+        },
+        {
+          "progress": 11,
+          "cell": "B5"
+        },
+        {
+          "progress": 12,
+          "cell": "C5"
+        },
+        {
+          "progress": 13,
+          "cell": "D5"
+        },
+        {
+          "progress": 14,
+          "cell": "E5"
+        },
+        {
+          "progress": 15,
+          "cell": "E4"
+        },
+        {
+          "progress": 16,
+          "cell": "E3"
+        }
+      ],
+      "secondJourneyRoute": [
+        {
+          "progress": 0,
+          "cell": "E3"
+        },
+        {
+          "progress": 1,
+          "cell": "E2"
+        },
+        {
+          "progress": 2,
+          "cell": "E1"
+        },
+        {
+          "progress": 3,
+          "cell": "D1"
+        },
+        {
+          "progress": 4,
+          "cell": "C1"
+        },
+        {
+          "progress": 5,
+          "cell": "B1"
+        },
+        {
+          "progress": 6,
+          "cell": "A1"
+        },
+        {
+          "progress": 7,
+          "cell": "A2"
+        },
+        {
+          "progress": 8,
+          "cell": "A3"
+        },
+        {
+          "progress": 9,
+          "cell": "A4"
+        },
+        {
+          "progress": 10,
+          "cell": "A5"
+        },
+        {
+          "progress": 11,
+          "cell": "B5"
+        },
+        {
+          "progress": 12,
+          "cell": "C5"
+        },
+        {
+          "progress": 13,
+          "cell": "D5"
+        },
+        {
+          "progress": 14,
+          "cell": "E5"
+        },
+        {
+          "progress": 15,
+          "cell": "E4"
+        },
+        {
+          "progress": 16,
+          "cell": "D4"
+        },
+        {
+          "progress": 17,
+          "cell": "C4"
+        },
+        {
+          "progress": 18,
+          "cell": "B4"
+        },
+        {
+          "progress": 19,
+          "cell": "B3"
+        },
+        {
+          "progress": 20,
+          "cell": "B2"
+        },
+        {
+          "progress": 21,
+          "cell": "C2"
+        },
+        {
+          "progress": 22,
+          "cell": "D2"
+        },
+        {
+          "progress": 23,
+          "cell": "D3"
+        },
+        {
+          "progress": 24,
+          "cell": "C3"
+        }
+      ],
+      "unifiedRoute": [
+        {
+          "progress": 0,
+          "cell": "E3"
+        },
+        {
+          "progress": 1,
+          "cell": "E2"
+        },
+        {
+          "progress": 2,
+          "cell": "E1"
+        },
+        {
+          "progress": 3,
+          "cell": "D1"
+        },
+        {
+          "progress": 4,
+          "cell": "C1"
+        },
+        {
+          "progress": 5,
+          "cell": "B1"
+        },
+        {
+          "progress": 6,
+          "cell": "A1"
+        },
+        {
+          "progress": 7,
+          "cell": "A2"
+        },
+        {
+          "progress": 8,
+          "cell": "A3"
+        },
+        {
+          "progress": 9,
+          "cell": "A4"
+        },
+        {
+          "progress": 10,
+          "cell": "A5"
+        },
+        {
+          "progress": 11,
+          "cell": "B5"
+        },
+        {
+          "progress": 12,
+          "cell": "C5"
+        },
+        {
+          "progress": 13,
+          "cell": "D5"
+        },
+        {
+          "progress": 14,
+          "cell": "E5"
+        },
+        {
+          "progress": 15,
+          "cell": "E4"
+        },
+        {
+          "progress": 16,
+          "cell": "E3"
+        },
+        {
+          "progress": 17,
+          "cell": "E2"
+        },
+        {
+          "progress": 18,
+          "cell": "E1"
+        },
+        {
+          "progress": 19,
+          "cell": "D1"
+        },
+        {
+          "progress": 20,
+          "cell": "C1"
+        },
+        {
+          "progress": 21,
+          "cell": "B1"
+        },
+        {
+          "progress": 22,
+          "cell": "A1"
+        },
+        {
+          "progress": 23,
+          "cell": "A2"
+        },
+        {
+          "progress": 24,
+          "cell": "A3"
+        },
+        {
+          "progress": 25,
+          "cell": "A4"
+        },
+        {
+          "progress": 26,
+          "cell": "A5"
+        },
+        {
+          "progress": 27,
+          "cell": "B5"
+        },
+        {
+          "progress": 28,
+          "cell": "C5"
+        },
+        {
+          "progress": 29,
+          "cell": "D5"
+        },
+        {
+          "progress": 30,
+          "cell": "E5"
+        },
+        {
+          "progress": 31,
+          "cell": "E4"
+        },
+        {
+          "progress": 32,
+          "cell": "D4"
+        },
+        {
+          "progress": 33,
+          "cell": "C4"
+        },
+        {
+          "progress": 34,
+          "cell": "B4"
+        },
+        {
+          "progress": 35,
+          "cell": "B3"
+        },
+        {
+          "progress": 36,
+          "cell": "B2"
+        },
+        {
+          "progress": 37,
+          "cell": "C2"
+        },
+        {
+          "progress": 38,
+          "cell": "D2"
+        },
+        {
+          "progress": 39,
+          "cell": "D3"
+        },
+        {
+          "progress": 40,
+          "cell": "C3"
+        }
+      ]
+    },
+    "yellow": {
+      "seat": "bottom",
+      "home": "C5",
+      "entrance": "B5",
+      "preFinish": "C4",
+      "finish": "C3",
+      "firstRoundRoute": [
+        {
+          "progress": 0,
+          "cell": "C5"
+        },
+        {
+          "progress": 1,
+          "cell": "D5"
+        },
+        {
+          "progress": 2,
+          "cell": "E5"
+        },
+        {
+          "progress": 3,
+          "cell": "E4"
+        },
+        {
+          "progress": 4,
+          "cell": "E3"
+        },
+        {
+          "progress": 5,
+          "cell": "E2"
+        },
+        {
+          "progress": 6,
+          "cell": "E1"
+        },
+        {
+          "progress": 7,
+          "cell": "D1"
+        },
+        {
+          "progress": 8,
+          "cell": "C1"
+        },
+        {
+          "progress": 9,
+          "cell": "B1"
+        },
+        {
+          "progress": 10,
+          "cell": "A1"
+        },
+        {
+          "progress": 11,
+          "cell": "A2"
+        },
+        {
+          "progress": 12,
+          "cell": "A3"
+        },
+        {
+          "progress": 13,
+          "cell": "A4"
+        },
+        {
+          "progress": 14,
+          "cell": "A5"
+        },
+        {
+          "progress": 15,
+          "cell": "B5"
+        },
+        {
+          "progress": 16,
+          "cell": "C5"
+        }
+      ],
+      "secondJourneyRoute": [
+        {
+          "progress": 0,
+          "cell": "C5"
+        },
+        {
+          "progress": 1,
+          "cell": "D5"
+        },
+        {
+          "progress": 2,
+          "cell": "E5"
+        },
+        {
+          "progress": 3,
+          "cell": "E4"
+        },
+        {
+          "progress": 4,
+          "cell": "E3"
+        },
+        {
+          "progress": 5,
+          "cell": "E2"
+        },
+        {
+          "progress": 6,
+          "cell": "E1"
+        },
+        {
+          "progress": 7,
+          "cell": "D1"
+        },
+        {
+          "progress": 8,
+          "cell": "C1"
+        },
+        {
+          "progress": 9,
+          "cell": "B1"
+        },
+        {
+          "progress": 10,
+          "cell": "A1"
+        },
+        {
+          "progress": 11,
+          "cell": "A2"
+        },
+        {
+          "progress": 12,
+          "cell": "A3"
+        },
+        {
+          "progress": 13,
+          "cell": "A4"
+        },
+        {
+          "progress": 14,
+          "cell": "A5"
+        },
+        {
+          "progress": 15,
+          "cell": "B5"
+        },
+        {
+          "progress": 16,
+          "cell": "B4"
+        },
+        {
+          "progress": 17,
+          "cell": "B3"
+        },
+        {
+          "progress": 18,
+          "cell": "B2"
+        },
+        {
+          "progress": 19,
+          "cell": "C2"
+        },
+        {
+          "progress": 20,
+          "cell": "D2"
+        },
+        {
+          "progress": 21,
+          "cell": "D3"
+        },
+        {
+          "progress": 22,
+          "cell": "D4"
+        },
+        {
+          "progress": 23,
+          "cell": "C4"
+        },
+        {
+          "progress": 24,
+          "cell": "C3"
+        }
+      ],
+      "unifiedRoute": [
+        {
+          "progress": 0,
+          "cell": "C5"
+        },
+        {
+          "progress": 1,
+          "cell": "D5"
+        },
+        {
+          "progress": 2,
+          "cell": "E5"
+        },
+        {
+          "progress": 3,
+          "cell": "E4"
+        },
+        {
+          "progress": 4,
+          "cell": "E3"
+        },
+        {
+          "progress": 5,
+          "cell": "E2"
+        },
+        {
+          "progress": 6,
+          "cell": "E1"
+        },
+        {
+          "progress": 7,
+          "cell": "D1"
+        },
+        {
+          "progress": 8,
+          "cell": "C1"
+        },
+        {
+          "progress": 9,
+          "cell": "B1"
+        },
+        {
+          "progress": 10,
+          "cell": "A1"
+        },
+        {
+          "progress": 11,
+          "cell": "A2"
+        },
+        {
+          "progress": 12,
+          "cell": "A3"
+        },
+        {
+          "progress": 13,
+          "cell": "A4"
+        },
+        {
+          "progress": 14,
+          "cell": "A5"
+        },
+        {
+          "progress": 15,
+          "cell": "B5"
+        },
+        {
+          "progress": 16,
+          "cell": "C5"
+        },
+        {
+          "progress": 17,
+          "cell": "D5"
+        },
+        {
+          "progress": 18,
+          "cell": "E5"
+        },
+        {
+          "progress": 19,
+          "cell": "E4"
+        },
+        {
+          "progress": 20,
+          "cell": "E3"
+        },
+        {
+          "progress": 21,
+          "cell": "E2"
+        },
+        {
+          "progress": 22,
+          "cell": "E1"
+        },
+        {
+          "progress": 23,
+          "cell": "D1"
+        },
+        {
+          "progress": 24,
+          "cell": "C1"
+        },
+        {
+          "progress": 25,
+          "cell": "B1"
+        },
+        {
+          "progress": 26,
+          "cell": "A1"
+        },
+        {
+          "progress": 27,
+          "cell": "A2"
+        },
+        {
+          "progress": 28,
+          "cell": "A3"
+        },
+        {
+          "progress": 29,
+          "cell": "A4"
+        },
+        {
+          "progress": 30,
+          "cell": "A5"
+        },
+        {
+          "progress": 31,
+          "cell": "B5"
+        },
+        {
+          "progress": 32,
+          "cell": "B4"
+        },
+        {
+          "progress": 33,
+          "cell": "B3"
+        },
+        {
+          "progress": 34,
+          "cell": "B2"
+        },
+        {
+          "progress": 35,
+          "cell": "C2"
+        },
+        {
+          "progress": 36,
+          "cell": "D2"
+        },
+        {
+          "progress": 37,
+          "cell": "D3"
+        },
+        {
+          "progress": 38,
+          "cell": "D4"
+        },
+        {
+          "progress": 39,
+          "cell": "C4"
+        },
+        {
+          "progress": 40,
+          "cell": "C3"
+        }
+      ]
+    },
+    "red": {
+      "seat": "left",
+      "home": "A3",
+      "entrance": "A2",
+      "preFinish": "B3",
+      "finish": "C3",
+      "firstRoundRoute": [
+        {
+          "progress": 0,
+          "cell": "A3"
+        },
+        {
+          "progress": 1,
+          "cell": "A4"
+        },
+        {
+          "progress": 2,
+          "cell": "A5"
+        },
+        {
+          "progress": 3,
+          "cell": "B5"
+        },
+        {
+          "progress": 4,
+          "cell": "C5"
+        },
+        {
+          "progress": 5,
+          "cell": "D5"
+        },
+        {
+          "progress": 6,
+          "cell": "E5"
+        },
+        {
+          "progress": 7,
+          "cell": "E4"
+        },
+        {
+          "progress": 8,
+          "cell": "E3"
+        },
+        {
+          "progress": 9,
+          "cell": "E2"
+        },
+        {
+          "progress": 10,
+          "cell": "E1"
+        },
+        {
+          "progress": 11,
+          "cell": "D1"
+        },
+        {
+          "progress": 12,
+          "cell": "C1"
+        },
+        {
+          "progress": 13,
+          "cell": "B1"
+        },
+        {
+          "progress": 14,
+          "cell": "A1"
+        },
+        {
+          "progress": 15,
+          "cell": "A2"
+        },
+        {
+          "progress": 16,
+          "cell": "A3"
+        }
+      ],
+      "secondJourneyRoute": [
+        {
+          "progress": 0,
+          "cell": "A3"
+        },
+        {
+          "progress": 1,
+          "cell": "A4"
+        },
+        {
+          "progress": 2,
+          "cell": "A5"
+        },
+        {
+          "progress": 3,
+          "cell": "B5"
+        },
+        {
+          "progress": 4,
+          "cell": "C5"
+        },
+        {
+          "progress": 5,
+          "cell": "D5"
+        },
+        {
+          "progress": 6,
+          "cell": "E5"
+        },
+        {
+          "progress": 7,
+          "cell": "E4"
+        },
+        {
+          "progress": 8,
+          "cell": "E3"
+        },
+        {
+          "progress": 9,
+          "cell": "E2"
+        },
+        {
+          "progress": 10,
+          "cell": "E1"
+        },
+        {
+          "progress": 11,
+          "cell": "D1"
+        },
+        {
+          "progress": 12,
+          "cell": "C1"
+        },
+        {
+          "progress": 13,
+          "cell": "B1"
+        },
+        {
+          "progress": 14,
+          "cell": "A1"
+        },
+        {
+          "progress": 15,
+          "cell": "A2"
+        },
+        {
+          "progress": 16,
+          "cell": "B2"
+        },
+        {
+          "progress": 17,
+          "cell": "C2"
+        },
+        {
+          "progress": 18,
+          "cell": "D2"
+        },
+        {
+          "progress": 19,
+          "cell": "D3"
+        },
+        {
+          "progress": 20,
+          "cell": "D4"
+        },
+        {
+          "progress": 21,
+          "cell": "C4"
+        },
+        {
+          "progress": 22,
+          "cell": "B4"
+        },
+        {
+          "progress": 23,
+          "cell": "B3"
+        },
+        {
+          "progress": 24,
+          "cell": "C3"
+        }
+      ],
+      "unifiedRoute": [
+        {
+          "progress": 0,
+          "cell": "A3"
+        },
+        {
+          "progress": 1,
+          "cell": "A4"
+        },
+        {
+          "progress": 2,
+          "cell": "A5"
+        },
+        {
+          "progress": 3,
+          "cell": "B5"
+        },
+        {
+          "progress": 4,
+          "cell": "C5"
+        },
+        {
+          "progress": 5,
+          "cell": "D5"
+        },
+        {
+          "progress": 6,
+          "cell": "E5"
+        },
+        {
+          "progress": 7,
+          "cell": "E4"
+        },
+        {
+          "progress": 8,
+          "cell": "E3"
+        },
+        {
+          "progress": 9,
+          "cell": "E2"
+        },
+        {
+          "progress": 10,
+          "cell": "E1"
+        },
+        {
+          "progress": 11,
+          "cell": "D1"
+        },
+        {
+          "progress": 12,
+          "cell": "C1"
+        },
+        {
+          "progress": 13,
+          "cell": "B1"
+        },
+        {
+          "progress": 14,
+          "cell": "A1"
+        },
+        {
+          "progress": 15,
+          "cell": "A2"
+        },
+        {
+          "progress": 16,
+          "cell": "A3"
+        },
+        {
+          "progress": 17,
+          "cell": "A4"
+        },
+        {
+          "progress": 18,
+          "cell": "A5"
+        },
+        {
+          "progress": 19,
+          "cell": "B5"
+        },
+        {
+          "progress": 20,
+          "cell": "C5"
+        },
+        {
+          "progress": 21,
+          "cell": "D5"
+        },
+        {
+          "progress": 22,
+          "cell": "E5"
+        },
+        {
+          "progress": 23,
+          "cell": "E4"
+        },
+        {
+          "progress": 24,
+          "cell": "E3"
+        },
+        {
+          "progress": 25,
+          "cell": "E2"
+        },
+        {
+          "progress": 26,
+          "cell": "E1"
+        },
+        {
+          "progress": 27,
+          "cell": "D1"
+        },
+        {
+          "progress": 28,
+          "cell": "C1"
+        },
+        {
+          "progress": 29,
+          "cell": "B1"
+        },
+        {
+          "progress": 30,
+          "cell": "A1"
+        },
+        {
+          "progress": 31,
+          "cell": "A2"
+        },
+        {
+          "progress": 32,
+          "cell": "B2"
+        },
+        {
+          "progress": 33,
+          "cell": "C2"
+        },
+        {
+          "progress": 34,
+          "cell": "D2"
+        },
+        {
+          "progress": 35,
+          "cell": "D3"
+        },
+        {
+          "progress": 36,
+          "cell": "D4"
+        },
+        {
+          "progress": 37,
+          "cell": "C4"
+        },
+        {
+          "progress": 38,
+          "cell": "B4"
+        },
+        {
+          "progress": 39,
+          "cell": "B3"
+        },
+        {
+          "progress": 40,
+          "cell": "C3"
+        }
+      ]
+    }
+  }
+}

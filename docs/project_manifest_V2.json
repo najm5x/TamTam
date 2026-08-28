@@ -1,0 +1,40 @@
+{
+  "project": "TamTam",
+  "ruleset": "V2",
+  "documentRevision": "2.1",
+  "date": "2026-08-29",
+  "status": "implementation-ready-no-known-open-gameplay-decisions",
+  "authority": {
+    "canonicalRoutes": "04_Canonical_Routes_V2.json",
+    "rules": "01_Game_Rules_Constitution_V2.md",
+    "projectInstructions": "TamTam_Project_Instructions_V2.md",
+    "visualLayout": "09_Visual_Layout_Contract_V2.md"
+  },
+  "closedDecisions": [
+    "approved canonical 0-40 routes",
+    "one cast moves exactly one piece",
+    "all Homes universally safe",
+    "finished pieces inactive and shown in player C3 triangle",
+    "legal piece must be used if available",
+    "no legal move means turn ends",
+    "1080 board / 50 margin / 980 game area / 196 cells",
+    "5+ active pieces render at 20% with overlap"
+  ],
+  "openGameplayDecisions": [],
+  "files": [
+    "00_READ_ME_FIRST_V2.md",
+    "01_Game_Rules_Constitution_V2.md",
+    "02_Project_Description_V2.md",
+    "03_Canonical_Routes_V2.md",
+    "04_Canonical_Routes_V2.json",
+    "05_Technical_Architecture_V2.md",
+    "06_MVP_Scope_V2.md",
+    "07_Test_and_Verification_Plan_V2.md",
+    "08_Gemini_Antigravity_Master_Prompt_V2.md",
+    "09_Visual_Layout_Contract_V2.md",
+    "TamTam_Claude_Master_Handoff_Prompt_V2.md",
+    "TamTam_Project_Instructions_V2.md",
+    "TamTam_Source_Audit_for_Claude_V2.md",
+    "project_manifest_V2.json"
+  ]
+}
